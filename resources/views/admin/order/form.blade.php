@@ -20,32 +20,22 @@
                         <div class="col-md-6">
                             <x-select-field name="user_id" id="user_id" label="Konsumen" :options="$user"/>
                             <x-select-field name="produk_id" id="produk_id" label="Produk" :options="$produk"/>
+                            <div class="mb-4">
+                                <label for="field-lama">Lama Sewa</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="field-lama" name="lama">
+                                    <span class="input-group-text">
+                                        Jam
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <x-input-field type="text" name="tgl" id="tgl" label="Tanggal"/>
-                            <div class="mb-4" data-select2-id="6">
-                                <label class="form-label" for="field-produk_id">Produk
-                                </label>
-                                <select class="form-control select2-hidden-accessible" id="field-produk_id"
-                                    name="produk_id" data-select2-id="field-produk_id" tabindex="-1" aria-hidden="true">
-                                    <option value="" data-select2-id="4">Pilih</option>
-                                    <option value="1" data-select2-id="7">Mini Excavator, 5 Ton, Kobelco</option>
-                                </select><span
-                                    class="select2 select2-container select2-container--default select2-container--below"
-                                    dir="ltr" data-select2-id="3" style="width: 562px;"><span class="selection"><span
-                                            class="select2-selection select2-selection--single" role="combobox"
-                                            aria-haspopup="true" aria-expanded="false" tabindex="0"
-                                            aria-disabled="false"
-                                            aria-labelledby="select2-field-produk_id-container"><span
-                                                class="select2-selection__rendered"
-                                                id="select2-field-produk_id-container" role="textbox"
-                                                aria-readonly="true" title="Mini Excavator, 5 Ton, Kobelco">Mini
-                                                Excavator, 5 Ton, Kobelco</span><span class="select2-selection__arrow"
-                                                role="presentation"><b
-                                                    role="presentation"></b></span></span></span><span
-                                        class="dropdown-wrapper" aria-hidden="true"></span></span>
-                                <div id="error-produk_id" class="text-danger"></div>
-
+                            <div class="mb-4">
+                                <label>Harga per jam</label>
+                                <div class="fw-medium py-2" id="hargaJamShow">Rp 0</div>
+                                <input type="hidden" id="hargaJamVal" />
                             </div>
                         </div>
                     </div>
@@ -68,6 +58,28 @@
             minDate: "today"
         });
 
+        $("#field-produk_id").on("change", function(e){
+            var id = $(this).val();
+            $.ajax({
+                url: "/admin/produk/"+ id,
+                type: 'GET',
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function (response) {
+                    console.log(response);
+
+                    $("#hargaJamShow").text(formatRupiah(response.harga_jam, 'Rp. '));
+                    $("#hargaJamVal").val(response.harga_jam);
+
+                    $("#field-lama").attr("min", response.min_sewa);
+                    $("#field-lama").val(response.min_sewa);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alert('Error adding / update data');
+                }
+            });
+        })
         function formatRupiah(angka, prefix){
             var number_string = angka.toString(),
             split   		= number_string.split(','),

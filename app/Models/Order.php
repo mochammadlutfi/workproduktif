@@ -21,8 +21,11 @@ class Order extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
     
-    public function training(){
+    public function produk(){
         return $this->belongsTo(Produk::class, 'produk_id');
     }
-
+    
+    public function pembayaran(){
+        return $this->hasMany(Payment::class, 'order_id');
+    }
 }

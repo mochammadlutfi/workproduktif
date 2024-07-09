@@ -145,7 +145,9 @@ class ProdukController extends Controller
      */
     public function show($id)
     {
-        //
+        $data = Produk::where('id', $id)->first();
+
+        return response()->json($data);
     }
 
     /**

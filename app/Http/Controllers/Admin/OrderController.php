@@ -101,15 +101,13 @@ class OrderController extends Controller
             try{
 
                 $data = new Order();
-                $data->nis = $request->nis;
-                $data->nama = $request->nama;
-                $data->jk = $request->jk;
-                $data->kelas = $request->kelas;
-                $data->hp = $request->hp;
-                $data->email = $request->email;
-                $data->alamat = $request->alamat;
-                $data->status = 'aktif';
-                $data->ekskul_id = $request->ekskul_id;
+                $data->user_id = $request->user_id;
+                $data->nomor = $this->getNomor();
+                $data->produk_id = $request->produk_id;
+                $data->tgl = $request->tgl;
+                $data->lama = $request->lama;
+                $data->total = $request->total;
+                $data->status = 'draft';
                 $data->save();
 
             }catch(\QueryException $e){
@@ -122,7 +120,7 @@ class OrderController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('anggota.index');
+            return redirect()->route('admin.order.index');
         }
     }
 
@@ -134,11 +132,10 @@ class OrderController extends Controller
      */
     public function show($id, Request $request)
     {
-        $data = Booking::with('user')
-        ->withSum([ 'bayar' => fn ($query) => $query->where('status', 'setuju')], 'jumlah')
+        $data = Order::with('user')
+        ->withSum(['pembayaran' => fn ($query) => $query->where('status', 'terima')], 'jumlah')
         ->where('id', $id)
         ->first();
-        // dd($data);
 
         return view('admin.order.detail',[
             'data' => $data,
@@ -260,5 +257,23 @@ class OrderController extends Controller
     public function cek(Request $request)
     {
         dd($request->all());
+    }
+
+    
+    private function getNomor()
+    {
+        $q = Order::select(DB::raw('MAX(RIGHT(nomor,5)) AS kd_max'));
+
+        $code = 'P';
+        $no = 1;
+        date_default_timezone_set('Asia/Jakarta');
+
+        if($q->count() > 0){
+            foreach($q->get() as $k){
+                return $code . date('ym') .'/'.sprintf("%05s", abs(((int)$k->kd_max) + 1));
+            }
+        }else{
+            return $code . date('ym') .'/'. sprintf("%05s", $no);
+        }
     }
 }
