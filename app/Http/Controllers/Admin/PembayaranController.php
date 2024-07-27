@@ -11,8 +11,8 @@ use Storage;
 use DataTables;
 
 use App\Models\User;
-use App\Models\Training;
-use App\Models\UserTraining;
+use App\Models\Payment;
+use App\Models\Order;
 
 class PembayaranController extends Controller
 {
@@ -24,7 +24,9 @@ class PembayaranController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = Order::with(['user', 'training'])
+            $data = Payment::with(['order' => function($q){
+                return $q->with('user');
+            }])
             ->orderBy('id', 'DESC')->get();
 
             return DataTables::of($data)
@@ -42,30 +44,28 @@ class PembayaranController extends Controller
 
                     return $tgl->translatedFormat('d M Y');
                 })
-                ->editColumn('harga', function ($row) {
-                    $harga = ($row->training->harga) ? 'Rp '.number_format($row->training->harga,0,',','.') : 'Gratis';
-
-                    return $harga;
+                ->editColumn('jumlah', function ($row) {
+                    return 'Rp '.number_format($row->jumlah,0,',','.');
                 })
                 ->editColumn('status', function ($row) {
-                    if($row->status == 'belum bayar'){
-                        return '<span class="badge bg-danger">Belum Bayar</span>';
-                    }else if($row->status == 'sebagian'){
-                        return '<span class="badge bg-warning">Sebagian</span>';
-                    }else if($row->status == 'pending'){
-                        return '<span class="badge bg-primary">Pending</span>';
-                    }else if($row->status == 'lunas'){
-                        return '<span class="badge bg-success">Lunas</span>';
-                    }else if($row->status == 'batal'){
-                        return '<span class="badge bg-secondary">Batal</span>';
+                    if($row->status == 'pending'){
+                        return '<span class="badge bg-danger">Menunggu Konfirmasi</span>';
+                    }else if($row->status == 'terima'){
+                        return '<span class="badge bg-success">Diterima</span>';
+                    }else if($row->status == 'tolak'){
+                        return '<span class="badge bg-danger">Ditolak</span>';
                     }
                 })
-                ->rawColumns(['action', 'status', 'harga']) 
+                ->rawColumns(['action', 'status', 'jumlah']) 
                 ->make(true);
         }
         return view('admin.pembayaran.index');
     }
 
+    public function create(Request $request)
+    {
+        return view('admin.pembayaran.create');
+    }
     /**
      * Store a newly created resource in storage.
      *
@@ -75,37 +75,36 @@ class PembayaranController extends Controller
     public function store(Request $request)
     {
         // dd($request->all());
-        $booking = Booking::where('id', $request->booking_id)
-        ->withSum([ 'bayar' => fn ($query) => $query->where('status', 'setuju')], 'jumlah')
-        ->first();
-        $max = $booking->total_bayar - $booking->bayar_sum_jumlah;
+        // $booking = Booking::where('id', $request->booking_id)
+        // ->withSum([ 'bayar' => fn ($query) => $query->where('status', 'setuju')], 'jumlah')
+        // ->first();
+        // $max = $booking->total_bayar - $booking->bayar_sum_jumlah;
         $rules = [
             'tgl' => 'required',
-            'jumlah' => 'required|max:'.$max,
+            'jumlah' => 'required',
             'bukti' => 'required',
         ];
 
         $pesan = [
             'tgl.required' => 'Tanggal Bayar Wajib Diisi!',
             'jumlah.required' => 'Jumlah Wajib Diisi!',
-            'jumlah.max' => 'Jumlah Pembayaran Maksimal Rp '.number_format($max,0,',','.'),
+            // 'jumlah.max' => 'Jumlah Pembayaran Maksimal Rp '.number_format($max,0,',','.'),
             'bukti.required' => 'Bukti Pembayaran Wajib Diisi!',
         ];
 
         $validator = Validator::make($request->all(), $rules, $pesan);
         if ($validator->fails()){
-            return response()->json([
-                'fail' => true,
-                'errors' => $validator->errors()
-            ]);
+            return back()->withInput()->withErrors($validator->errors());
         }else{
             DB::beginTransaction();
             try{
                 $data = new Payment();
-                $data->booking_id = $request->booking_id;
+                $data->order_id = $request->order_id;
+                $data->bank = $request->bank;
+                $data->pengirim = $request->pengirim;
                 $data->tgl = Carbon::parse($request->tgl);
                 $data->jumlah = $request->jumlah;
-                $data->status = 'pending';
+                $data->status = $request->status;
 
                 if($request->bukti){
                     $fileName = time() . '.' . $request->bukti->extension();
@@ -113,10 +112,6 @@ class PembayaranController extends Controller
                     $data->bukti = '/uploads/pembayaran/'.$fileName;
                 }
                 $data->save();
-
-                $booking = Booking::where('id', $request->booking_id)->first();
-                $booking->status = 'pending';
-                $booking->save();
 
             }catch(\QueryException $e){
                 DB::rollback();
@@ -127,9 +122,7 @@ class PembayaranController extends Controller
             }
 
             DB::commit();
-            return response()->json([
-                'fail' => false,
-            ]);
+            return redirect()->route('admin.payment.show', $data->id);
         }
     }
 
@@ -141,52 +134,11 @@ class PembayaranController extends Controller
      */
     public function show($id)
     {
-        $data = UserTraining::with(['user', 'training'])->where('id', $id)->first();
-        $harga = ($data->training->harga) ? 'Rp '.number_format($data->training->harga,0,',','.') : 'Gratis';
+        $data = Payment::where('id', $id)->first();
 
-        $html = '
-        <div class="row mb-3">
-            <label class="col-sm-4 fw-medium">Peserta</label>
-            <div class="col-sm-6">
-                : '. $data->user->nama .'
-            </div>
-        </div>
-        <div class="row mb-3">
-            <label class="col-sm-4 fw-medium">Training</label>
-            <div class="col-sm-6">
-                : '. $data->training->nama .'
-            </div>
-        </div>
-        <div class="row mb-3">
-            <label class="col-sm-4 fw-medium">Tanggal Bayar</label>
-            <div class="col-sm-6">
-                : '. Carbon::parse($data->tgl)->translatedFormat('d F Y') .'
-            </div>
-        </div>
-        <div class="row mb-3">
-            <label class="col-sm-4 fw-medium">Jumlah Bayar</label>
-            <div class="col-sm-6">
-                : '.$harga.'
-            </div>
-        </div>';
-
-        if($data->status == 'pending'){
-            $html.= ' <div class="border-top py-3 text-end">
-                <button type="button" class="btn btn-alt-danger" data-bs-dismiss="modal" onclick="updateStatus('.$data->id .', `tolak`)">
-                    Tolak
-                </button>
-                <button type="submit" class="btn btn-alt-primary" id="btn-simpan" onclick="updateStatus('.$data->id .', `lunas`)">
-                    Konfirmasi
-                </button>
-            </div>';
-        }else{
-            $html.= ' <div class="border-top py-3 text-end">
-                <button type="button" class="btn btn-alt-danger" data-bs-dismiss="modal" onclick="hapus('.$data->id .')">
-                    Hapus
-                </button>
-            </div>';
-        }
-        echo $html;
+        return view('admin.pembayaran.show',[
+            'data' => $data
+        ]);
     }
 
     

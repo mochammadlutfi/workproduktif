@@ -11,7 +11,7 @@
     @endpush
 
     <div class="content">
-        <form method="POST" action="{{ route('admin.training.update',  $data->id) }}" enctype="multipart/form-data">
+        <form method="POST" action="{{ route('admin.produk.update', $data->id) }}" enctype="multipart/form-data">
             @csrf
             <div class="content-heading d-flex justify-content-between align-items-center">
                 <span>{{ isset($data) ? 'Edit Training' : 'Tambah Training' }}</span>
@@ -25,83 +25,80 @@
             <div class="block block-rounded">
                 <div class="block-content">
                     <div class="row">
-                        <div class="col-8">
-                            <div class="mb-4">
-                                <label for="field-nama">Nama Training</label>
-                                <input type="text" class="form-control {{ $errors->has('nama') ? 'is-invalid' : '' }}"
-                                    id="field-nama" name="nama" placeholder="Masukan Nama Training" value="{{ old('nama', $data->nama) }}">
-                                <x-input-error :messages="$errors->get('nama')" class="mt-2" />
+                        <div class="col-6">
+                            <div class="img-uploader mb-4">
+                                <label>Foto</label>
+                                <img id="preview" src="{{ $data->foto }}" alt="Foto"/>
+                                <input type="file" class="form-control" accept="image" name="foto" @error('image') is-invalid @enderror id="selectImage">
                             </div>
-                            <div class="mb-4">
-                                <label for="field-lokasi">Lokasi</label>
-                                <input type="text" class="form-control {{ $errors->has('lokasi') ? 'is-invalid' : '' }}"
-                                    id="field-lokasi" name="lokasi" placeholder="Masukan Lokasi Training" value="{{ old('lokasi', $data->lokasi) ?? '' }}">
-                                <x-input-error :messages="$errors->get('tempat')" class="mt-2" />
-                            </div>
+                            <x-input-field type="text" id="nama" name="nama" label="Nama" value="{{ $data->nama }}" :required="true"/>
+                        </div>
+                        <div class="col-6">
+                            <x-input-field type="text" id="model" name="model" label="Model" value="{{ $data->model }}" :required="true"/>
+                            <x-select-field id="kategori" label="Kategori" name="kategori_id" value="{{ $data->kategori_id }}"
+                            :options="$kategori"
+                            />
                             <div class="mb-4">
                                 <label for="field-deskripsi">Deskripsi</label>
                                 <textarea class="form-control {{ $errors->has('deskripsi') ? 'is-invalid' : '' }}"
-                                    id="field-deskripsi" name="deskripsi"
-                                    placeholder="Masukan deskripsi">{{ old('deskripsi', $data->deskripsi) }}</textarea>
+                                    id="field-deskripsi" rows="5" name="deskripsi">{{ old('deskripsi', $data->deskripsi) }}</textarea>
                                 <x-input-error :messages="$errors->get('deskripsi')" class="mt-2" />
-                            </div>
-                            <div class="mb-3">
-                                <label>Dokumen Silabus</label>
-                                <img id="preview" src="#" alt="dokumen" class="img-fluid mb-2" style="display:none;"/>
-                                <input type="file" class="form-control" name="document" @error('document') is-invalid @enderror id="selectDocument">
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="mb-4">
-                                <label for="field-jadwal">Kuota</label>
-                                <input type="number" name="slot" class="form-control  {{ $errors->has('slot') ? 'is-invalid' : '' }}" value="{{ old('slot', $data->slot) }}">
-                                <x-input-error :messages="$errors->get('slot')" class="mt-2" />
-                            </div>
-                            <div class="mb-4">
-                                <label for="field-tgl_daftar">Tgl Pendaftaran</label>
-                                <input type="text" class="form-control {{ $errors->has('tgl_daftar') ? 'is-invalid' : '' }}"
-                                    id="field-tgl_daftar" name="tgl_daftar" placeholder="Masukan Tanggal Daftar" value="{{ old('tgl_daftar', $data->tgl_daftar) ?? '' }}">
-                                <x-input-error :messages="$errors->get('tgl_daftar')" class="mt-2" />
-                            </div>
-                            <div class="mb-4">
-                                <label for="field-tgl_training">Tgl Training</label>
-                                <input type="text" class="form-control {{ $errors->has('tgl_training') ? 'is-invalid' : '' }}"
-                                    id="field-tgl_training" name="tgl_training" placeholder="Masukan Tanggal Training" value="{{ old('tgl_training', $data->tgl_training) ?? '' }}">
-                                <x-input-error :messages="$errors->get('tgl_training')" class="mt-2" />
-                            </div>
-                            <div class="mb-4">
-                                <label for="field-harga">Harga</label>
-                                <input type="number" name="harga" class="form-control  {{ $errors->has('harga') ? 'is-invalid' : '' }}" value="{{ old('harga', $data->harga) }}">
-                                <x-input-error :messages="$errors->get('harga')" class="mt-2" />
-                            </div>
-                            <div class="mb-4">
-                                <label for="field-status">Status</label>
-                                <select class="form-select {{ $errors->has('status') ? 'is-invalid' : '' }}"
-                                    id="field-status" style="width: 100%;" name="status" data-placeholder="Pilih Status">
-                                    <option value="draft">Draft</option>
-                                    <option value="buka">Dibuka</option>
-                                    <option value="penuh">Penuh</option>
-                                    <option value="tutup">Tutup</option>
-                                </select>
-                                <x-input-error :messages="$errors->get('status')" class="mt-2" />
-                            </div>
-                            <div class="mb-4">
-                                <label for="field-kategori">Kategori</label>
-                                <select class="form-select {{ $errors->has('kategori') ? 'is-invalid' : '' }}"
-                                    id="field-kategori" style="width: 100%;" name="kategori" data-placeholder="Pilih Kategori">
-                                    @foreach ($kategori as $k)
-                                        <option value="{{ $k->id }}">{{ $k->nama }}</option>
-                                    @endforeach
-                                </select>
-                                <x-input-error :messages="$errors->get('kategori')" class="mt-2" />
-                            </div>
-                            <div class="mb-3">
-                                <label>Foto</label>
-                                <img id="preview" src="{{ ($data->foto) ? $data->foto : "#" }}" alt="Foto" class="img-fluid mb-2" style="{{ ($data->foto) ? "display:block;" : "display:none;" }}"/>
-                                <input type="file" class="form-control" name="foto" @error('image') is-invalid @enderror id="selectImage">
                             </div>
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <label for="field-min_sewa">Minimal Sewa</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control {{ $errors->has('min_sewa') ? 'is-invalid' : '' }}" id="field-min_sewa" name="min_sewa" value="{{ old('min_sewa', $data->min_sewa)}}">
+                                    <span class="input-group-text">
+                                        Jam
+                                    </span>
+                                    <x-input-error :messages="$errors->get('min_sewa')" class="mt-2" />
+                                </div>
+                            </div>
+                            <x-input-field type="text" id="harga_jam" name="harga_jam" label="Harga / Jam" value="{{ $data->harga_jam }}" :required="true"/>
+                            <x-input-field type="text" id="harga_harian" name="harga_harian" label="Harga / Hari" value="{{ $data->harga_harian }}"  :required="true"/>
+                        </div>
+                        <div class="col-md-6">
+                        <x-input-field type="text" id="operator_jam" name="operator_jam" label="Harga Operator / Jam" value="{{ $data->operator_jam }}" :required="true"/>
+                        <x-input-field type="text" id="operator_hari" name="operator_hari" label="Harga Operator / Hari" value="{{ $data->operator_hari }}" :required="true"/>
+                        </div>
+                    </div>
+                    <table class="table table-bordered" id="spek">
+                        <thead>
+                            <tr>
+                                <th>Label</th>
+                                <th>Nilai</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach(json_decode($data->spesifikasi) as $index => $s)
+                            <tr id="row{{$index}}" class='bb'>
+                                <td>
+                                    <input type="text" class="form-control" name="spek[{{ $index }}][label]" value="{{ $s->label }}">
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control" name="spek[{{ $index }}][value]" value="{{ $s->value }}">
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-danger w-100" onclick="delete_row(`row{{ $index }}`)"><i class="fa fa-times"></i></button>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3">
+                                    <button class="btn btn-primary w-100" type="button" onclick="add_row()">
+                                        <i class="fa fa-plus"></i>
+                                        Tambah Spesifikasi
+                                    </button>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
             </div>
         </form>
@@ -112,10 +109,8 @@
     <script src="/js/plugins/select2/js/select2.full.min.js"></script>
     <script src="/js/plugins/flatpickr/flatpickr.min.js"></script>
     <script src="/js/plugins/flatpickr/l10n/id.js"></script>
-    <script src="/js/plugins/ckeditor5-classic/build/ckeditor.js"></script>
-    <script src="https://cdn.ckeditor.com/ckeditor5/38.1.1/classic/ckeditor.js"></script>
     <script>
-        
+
         selectImage.onchange = evt => {
             preview = document.getElementById('preview');
             preview.style.display = 'block';
@@ -125,13 +120,8 @@
             }
         }
 
-        ClassicEditor
-        .create( document.querySelector('#field-deskripsi'))
-        .catch( error => {
-            console.error( error );
-        } );
-        
         $('#field-kategori').select2();
+
         $('#field-jadwal').select2({
             multiple : true,
         });
@@ -171,6 +161,21 @@
             time_24hr: true
         });
 
+        function add_row()
+        {
+            $rowno= ($("#spek tbody tr").length == 1) ? 0 : 1;
+            $rowno=$rowno+1;
+            $row = "<tr id='row"+$rowno+"' class='bb'>";
+            $row += `<td><input type="text" class="form-control" name="spek[${ $rowno }][label]"></td>`;
+            $row += `<td><input type="text" class="form-control" name="spek[${ $rowno }][value]"></td>`;
+            $row += `<td><button type="button" class="btn btn-danger w-100" onclick=delete_row('row${ $rowno }')><i class="fa fa-times"></i></button></td>`;
+            $row += "</tr>"
+            $("#spek tbody tr:last").after($row);
+        }
+        function delete_row(rowno)
+        {
+            $('#'+rowno).remove();
+        }
 
     </script>
     @endpush

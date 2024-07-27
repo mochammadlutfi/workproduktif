@@ -15,11 +15,6 @@
             <div class="space-x-1">
                 <!-- Open Search Section -->
                 <!-- Layout API, functionality initialized in Template._uiApiLayout() -->
-                <button type="button" class="btn btn-sm btn-alt-secondary" data-toggle="layout"
-                    data-action="header_search_on">
-                    <i class="fa fa-fw fa-search opacity-50 me-1"></i>
-                    <span>Search</span>
-                </button>
                 <!-- END Open Search Section -->
     
                 <!-- Toggle Sidebar -->
@@ -31,7 +26,7 @@
                 <!-- END Toggle Sidebar -->
                 <!-- User Dropdown -->
                 <div class="dropdown d-inline-block">
-                    <a type="button" class="btn btn-sm btn-alt-secondary" id="page-header-user-dropdown"
+                    <a type="button" class="btn btn-sm btn-link" id="page-header-user-dropdown"
                         data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <i class="fa fa-user d-sm-none"></i>
                             <span class="d-none d-sm-inline-block fw-semibold">{{ Auth::guard('admin')->user()->nama }}</span>
@@ -39,11 +34,6 @@
                     </a>
                     <div class="dropdown-menu dropdown-menu-md dropdown-menu-end p-0"
                         aria-labelledby="page-header-user-dropdown">
-                        <div class="px-2 py-3 bg-body-light rounded-top">
-                            <h5 class="h6 text-center mb-0">
-                                {{ Auth::guard('admin')->user()->nama }}
-                            </h5>
-                        </div>
                         <div class="p-2">
                             <a class="dropdown-item d-flex align-items-center justify-content-between space-x-1"
                                 href="{{ route('admin.profile.edit') }}">

@@ -48,14 +48,22 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6">
-                            <x-input-field type="text" id="harga_jam" name="harga_jam" label="Harga Per Jam" :required="true"/>
-                            <x-input-field type="text" id="min_sewa" name="min_sewa" label="Minimal Sewa" :required="true"/>
-                            <x-input-field type="text" id="harga_harian" name="harga_harian" label="Harga Harian" :required="true"/>
+                            <div class="mb-4">
+                                <label for="field-min_sewa">Minimal Sewa</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control {{ $errors->has('min_sewa') ? 'is-invalid' : '' }}" id="field-min_sewa" name="min_sewa">
+                                    <span class="input-group-text">
+                                        Jam
+                                    </span>
+                                    <x-input-error :messages="$errors->get('nama')" class="mt-2" />
+                                </div>
+                            </div>
+                            <x-input-field type="text" id="harga_jam" name="harga_jam" label="Harga / Jam" :required="true"/>
+                            <x-input-field type="text" id="harga_harian" name="harga_harian" label="Harga / Hari" :required="true"/>
                         </div>
                         <div class="col-md-6">
-                        <x-input-field type="text" id="harga_mingguan" name="harga_mingguan" label="Harga Mingguan" :required="true"/>
-                        <x-input-field type="text" id="harga_bulanan" name="harga_bulanan" label="Harga Bulanan" :required="true"/>
-                        <x-input-field type="text" id="harga_operator" name="harga_operator" label="Harga Operator Harian" :required="true"/>
+                        <x-input-field type="text" id="operator_jam" name="operator_jam" label="Harga Operator / Jam" :required="true"/>
+                        <x-input-field type="text" id="operator_hari" name="operator_hari" label="Harga Operator / Hari" :required="true"/>
                         </div>
                     </div>
                     <table class="table table-bordered" id="spek">

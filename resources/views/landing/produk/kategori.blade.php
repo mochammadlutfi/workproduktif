@@ -19,7 +19,7 @@
                                 <div class="row g-2 text-center mb-3">
                                     <div class="col-md-4">
                                         <div class="fs-xs">
-                                            Harga Sewa Per Jam
+                                            Harga Sewa /Jam
                                         </div>
                                         <div class="fs-5 fw-bold">
                                             {{ $d->harga_jam }}
@@ -30,7 +30,7 @@
                                             Minimum Sewa
                                         </div>
                                         <div class="fs-5 fw-bold">
-                                            {{ $d->min_sewa }}
+                                            {{ $d->min_sewa }} Jam
                                         </div>
                                     </div>
                                     <div class="col-md-4">
@@ -38,7 +38,7 @@
                                             Harian Operator
                                         </div>
                                         <div class="fs-5 fw-bold">
-                                            {{ $d->harga_operator }}
+                                            {{ $d->operator_hari }}
                                         </div>
                                     </div>
                                 </div>

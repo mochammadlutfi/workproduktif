@@ -18,32 +18,29 @@
                             <p class="text-muted">{{ $data->deskripsi }}</p>
                         </div>
                     </div>
-                    <div class="row g-0 mb-4 text-center">
-                        <div class="col-md-4">
-                            <div class="fs-sm">
-                                Harga Sewa Per Jam
-                            </div>
-                            <div class="fs-4 fw-bold">
-                                {{ $data->harga_jam }}
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="fs-sm">
-                                Minimum Sewa
-                            </div>
-                            <div class="fs-4 fw-bold">
-                                {{ $data->min_sewa }}
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="fs-sm">
-                                Harian Operator
-                            </div>
-                            <div class="fs-4 fw-bold">
-                                {{ $data->harga_operator }}
-                            </div>
-                        </div>
-                    </div>
+                    <h3 class="fs-4 mb-3">Harga Alat</h3>
+                    <table class="table table-bordered">
+                        <tr>
+                            <td>Minimal Sewa</td>
+                            <td class="fw-bold">{{ $data->min_sewa }} Jam</td>
+                        </tr>
+                        <tr>
+                            <td>Harga Sewa / Jam</td>
+                            <td class="fw-bold">{{ $data->harga_jam }}</td>
+                        </tr>
+                        <tr>
+                            <td>Harga Sewa / Hari</td>
+                            <td class="fw-bold">{{ $data->harga_harian }}</td>
+                        </tr>
+                        <tr>
+                            <td>Harga Operator / Jam</td>
+                            <td class="fw-bold">{{ $data->operator_jam }}</td>
+                        </tr>
+                        <tr>
+                            <td>Harga Operator / Hari</td>
+                            <td class="fw-bold">{{ $data->operator_hari }}</td>
+                        </tr>
+                    </table>
                     @if($data->spesifikasi)
                     <h3 class="fs-4 mb-3">Spesifikasi Alat</h3>
                     <table class="table table-bordered">
@@ -78,11 +75,172 @@
             </div>
         </div>
     </div>
+    <div
+        class="modal"
+        id="modal-form"
+        aria-labelledby="modal-form"
+        style="display: none;"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form id="myForm" method="POST" action="{{ route('order.store') }}" enctype="multipart/form-data">
+                    @csrf
+                    <input type="hidden" id="field-id" name="produk_id" value="{{ $data->id }}"/>
+                    <input type="hidden" id="field-harga_operator" name="harga_operator"/>
+                    <input type="hidden" id="field-harga_unit" name="harga_unit"/>
+                    <input type="hidden" id="field-total" name="total"/>
+                    <div class="block block-rounded shadow-none mb-0">
+                        <div class="block-header block-header-default">
+                            <h3 class="block-title">Sewa Sekarang</h3>
+                            <div class="block-options">
+                                <button
+                                    type="button"
+                                    class="btn-block-option"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Close">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="block-content fs-sm">
+                            <div class="row mb-4">
+                                <div class="col-md-5 d-flex my-auto">
+                                    <label for="field-lama">Tanggal Penggunaan</label>
+                                </div>
+                                <div class="col-md-7">
+                                    <input type="date" class="form-control" id="field-tgl" name="tgl" value="{{ \Carbon\Carbon::today()->format('Y-m-d') }}">
+                                </div>
+                            </div>
+                            <div class="row mb-4">
+                                <div class="col-md-5 d-flex my-auto">
+                                    <label for="field-lama">Lama Sewa</label>
+                                </div>
+                                <div class="col-md-7">
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" onchange="calculate()" min="{{ $data->min_sewa}}" value="{{ $data->min_sewa}}" id="field-lama" name="lama">
+                                        <span class="input-group-text">
+                                            Jam
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-4">
+                                <div class="col-md-5 d-flex my-auto">
+                                    <label for="field-qty">Jumlah Unit</label>
+                                </div>
+                                <div class="col-md-7">
+                                    <input type="number" class="form-control" onchange="calculate()" min="1" value="1" id="field-qty" name="qty">
+                                </div>
+                            </div>
+                            <div class="row mb-4">
+                                <div class="col-md-5 d-flex my-auto">
+                                    <label for="field-qty">Harga / Unit</label>
+                                </div>
+                                <div class="col-md-7">
+                                    <div id="showHargaUnit">Rp {{ number_format($data->harga_harian,0,',','.') }}</div>
+                                </div>
+                            </div>
+                            <div class="row mb-4">
+                                <div class="col-md-5 d-flex my-auto">
+                                    <label for="field-qty">Harga Operator/Unit</label>
+                                </div>
+                                <div class="col-md-7">
+                                    <div id="showHargaOperator">Rp {{ number_format($data->harga_harian,0,',','.') }}</div>
+                                </div>
+                            </div>
+                            <div class="row mb-4">
+                                <div class="col-md-5 d-flex my-auto">
+                                    <label for="field-qty">Subtotal</label>
+                                </div>
+                                <div class="col-md-7">
+                                    <div id="showSubTotal">Rp {{ number_format($data->harga_harian,0,',','.') }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div
+                            class="block-content block-content-full block-content-sm text-end border-top">
+                            <button type="button" class="btn btn-alt-secondary" data-bs-dismiss="modal">
+                                Batal
+                            </button>
+                            <button type="submit" class="btn btn-primary" id="btn-simpan">
+                                Pesan
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     @push('scripts')
         <script>
+            const produk = {!! json_encode($data) !!};
+
             function openModal(){
-                alert('sadas')
+                const form = document.getElementById('modal-form');
+
+                calculate();
+                var modalForm = bootstrap.Modal.getOrCreateInstance(form);
+                
+                modalForm.show();
+            }
+
+            function calculate(){
+                var qty = $("#field-qty").val();
+                var lama = $("#field-lama").val();
+                const hargaUnit = hitungHargaUnit(lama);
+                const hargaOperator = hitungHargaOperator(lama);
+                const total = (hargaUnit + hargaOperator) * qty;
+
+                $("#field-harga_operator").val(hargaOperator);
+                $("#field-harga_unit").val(hargaUnit);
+                $("#field-total").val(total);
+
+                $("#showHargaUnit").html(formatRupiah(hargaUnit, 'Rp. '));
+                $("#showHargaOperator").html(formatRupiah(hargaOperator, 'Rp. '));
+                $("#showSubTotal").html(formatRupiah(total, 'Rp. '));
+            }
+
+            function hitungHargaOperator(lama){
+                sisa = lama % 12;
+
+                hari = (lama - sisa) / 12;
+
+                harga_hari = hari*produk.operator_hari;
+                harga_jam = sisa*produk.operator_jam;
+
+                total = harga_hari + harga_jam;
+
+                return total;
+            }
+
+            function formatRupiah(angka, prefix){
+                var number_string = angka.toString(),
+                split   		= number_string.split(','),
+                sisa     		= split[0].length % 3,
+                rupiah     		= split[0].substr(0, sisa),
+                ribuan     		= split[0].substr(sisa).match(/\d{3}/gi);
+
+                if(ribuan){
+                    separator = sisa ? '.' : '';
+                    rupiah += separator + ribuan.join('.');
+                }
+
+                rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
+                return prefix == undefined ? rupiah : (rupiah ? 'Rp ' + rupiah : '');
+            }
+
+            function hitungHargaUnit(lama){
+                sisa = lama % 12;
+
+                hari = (lama - sisa) / 12;
+
+                harga_hari = hari*produk.harga_harian;
+                harga_jam = sisa*produk.harga_harian;
+
+                total = harga_hari + harga_jam;
+
+                return total;
             }
         </script>
     @endpush

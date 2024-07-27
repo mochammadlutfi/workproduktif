@@ -18,8 +18,8 @@ class Payment extends Model
     ];
 
     
-    public function booking(){
-        return $this->belongsTo(Booking::class, 'booking_id');
+    public function order(){
+        return $this->belongsTo(order::class, 'order_id');
     }
 
 }

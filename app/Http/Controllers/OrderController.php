@@ -11,7 +11,8 @@ use DataTables;
 
 use App\Models\User;
 use App\Models\Order;
-
+use App\Models\Payment;
+use PDF;
 class OrderController extends Controller
 {
     /**
@@ -22,14 +23,14 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = Booking::where('user_id', auth()->guard('web')->user()->id)
+            $data = Order::where('user_id', auth()->guard('web')->user()->id)
             ->orderBy('id', 'DESC')
             ->get();
 
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('action', function($row){
-                    $btn = '<a href="'. route('booking.show', $row->id) .'" class="btn btn-primary btn-sm">Detail</a>';
+                    $btn = '<a href="'. route('order.show', $row->id) .'" class="btn btn-primary btn-sm">Detail</a>';
                     return $btn; 
                 })
                 ->editColumn('created_at', function ($row) {
@@ -61,6 +62,52 @@ class OrderController extends Controller
     }
 
 
+    public function payment($id, Request $request)
+    {
+        if ($request->ajax()) {
+            $data = Payment::where('order_id', $id)
+            ->orderBy('id', 'DESC')
+            ->get();
+
+            return DataTables::of($data)
+                ->addIndexColumn()
+                ->addColumn('action', function($row){
+                    $btn = '<a href="'. route('order.show', $row->id) .'" class="btn btn-primary btn-sm">Detail</a>';
+                    return $btn; 
+                })
+                ->editColumn('created_at', function ($row) {
+                    return Carbon::parse($row->created_at)->translatedFormat('d F Y');
+                })
+                ->editColumn('tgl', function ($row) {
+                    $tgl =  Carbon::parse($row->tgl)->translatedFormat('d F Y');
+
+                    return $tgl;
+                })
+                ->editColumn('status', function ($row) {
+                    if($row->status == 'Belum Bayar'){
+                        return '<span class="badge bg-danger">Belum Bayar</span>';
+                    }else if($row->status == 'sebagian'){
+                        return '<span class="badge bg-warning">Sebagian</span>';
+                    }else if($row->status == 'pending'){
+                        return '<span class="badge bg-primary">Menunggu Konfirmasi</span>';
+                    }else if($row->status == 'Lunas'){
+                        return '<span class="badge bg-success">Lunas</span>';
+                    }else if($row->status == 'Batal'){
+                        return '<span class="badge bg-secondary">Batal</span>';
+                    }
+                })
+                ->rawColumns(['action', 'status', 'tgl']) 
+                ->make(true);
+        }
+        $data = Order::where('id', $id)
+        ->first();
+        // dd($data->toArray());
+
+        return view('landing.order.pembayaran',[
+            'data' => $data
+        ]);
+        // return view('landing.order.pembayaran');
+    }
     /**
      * Store a newly created resource in storage.
      *
@@ -70,39 +117,36 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         // dd($request->all());
-        $rules = [
-            'tgl' => 'required',
-            'lama' => 'required',
-            'waktu' => 'required',
-        ];
+        // $rules = [
+        //     'tgl' => 'required',
+        //     'lama' => 'required',
+        //     'waktu' => 'required',
+        // ];
 
-        $pesan = [
-            'tgl.required' => 'Tanggal Main Wajib Diisi!',
-            'lama.required' => 'Lama Main Wajib Diisi!',
-            'waktu.required' => 'Waktu Main Wajib Diisi!',
-        ];
+        // $pesan = [
+        //     'tgl.required' => 'Tanggal Main Wajib Diisi!',
+        //     'lama.required' => 'Lama Main Wajib Diisi!',
+        //     'waktu.required' => 'Waktu Main Wajib Diisi!',
+        // ];
 
-        $validator = Validator::make($request->all(), $rules, $pesan);
-        if ($validator->fails()){
-            return back()->withInput()->withErrors($validator->errors());
-        }else{
+        // $validator = Validator::make($request->all(), $rules, $pesan);
+        // if ($validator->fails()){
+        //     return back()->withInput()->withErrors($validator->errors());
+        // }else{
             DB::beginTransaction();
             try{
-                $tgl =  Carbon::parse($request->tgl.' '.$request->waktu);
-                // dd($test);
-                $data = new Booking();
+
+                $data = new Order();
                 $data->nomor = $this->getNumber();
+                $data->produk_id = $request->produk_id;
                 $data->tgl = Carbon::parse($request->tgl);
                 $data->lama = $request->lama;
-                $data->mulai = $tgl->format('H:i');
-                $data->selesai = $tgl->addHour($request->lama)->format('H:i');
-                $data->status = $request->status;
-                $data->harga = 100000;
-                $data->diskon = $request->diskon;
+                $data->qty = $request->qty;
+                $data->harga_unit = $request->harga_unit;
+                $data->harga_operator = $request->harga_operator;
                 $data->total = $request->total;
-                $data->status = 'belum bayar';
-                $data->total_bayar = $request->total_bayar;
                 $data->user_id = auth()->guard('web')->user()->id;
+                $data->status = 'belum bayar';
                 $data->save();
 
             }catch(\QueryException $e){
@@ -111,8 +155,8 @@ class OrderController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('booking.show', $data->id);
-        }
+            return redirect()->route('order.payment', $data->id);
+        // }
     }
 
     /**
@@ -123,30 +167,15 @@ class OrderController extends Controller
      */
     public function show($id)
     {
-        $data = Booking::where('id', $id)
-        ->withSum([ 'bayar' => fn ($query) => $query->where('status', 'setuju')], 'jumlah')
+        $data = Order::where('id', $id)
         ->first();
+        // dd($data->toArray());
 
-        return view('landing.booking.show',[
+        return view('landing.order.show',[
             'data' => $data
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        $data = Ekskul::where('id', $id)->first();
-        $pembina = User::where('level', 'pembina')->orderBy('nama', 'ASC')->get();
-        return view('ekskul.edit',[
-            'pembina' => $pembina,
-            'data' => $data
-        ]);
-    }
 
     /**
      * Update the specified resource in storage.
@@ -157,24 +186,19 @@ class OrderController extends Controller
      */
     public function update(Request $request, $id)
     {
-        // dd($request->all());
         $rules = [
-            'nama' => 'required',
-            'pembina_id' => 'required',
-            'deskripsi' => 'required',
-            'tempat' => 'required',
-            'jadwal' => 'required',
-            'mulai' => 'required',
-            'selesai' => 'required',
+            'tgl' => 'required',
+            'jumlah' => 'required',
+            'bank' => 'required',
+            'bukti' => 'required',
         ];
 
         $pesan = [
-            'nama.required' => 'Nama Wajib Diisi!',
-            'pembina_id.required' => 'Pembina Wajib Diisi!',
-            'deskripsi.required' => 'Deskripsi Wajib Diisi!',
-            'tempat.required' => 'Tempat Wajib Diisi!',
-            'mulai.required' => 'Jam Mulai Wajib Diisi!',
-            'selesai.required' => 'Jam Selesai Wajib Diisi!',
+            'tgl.required' => 'Tanggal Bayar Wajib Diisi!',
+            'jumlah.required' => 'Jumlah Wajib Diisi!',
+            'bank.required' => 'Bank Wajib Diisi!',
+            // 'jumlah.max' => 'Jumlah Pembayaran Maksimal Rp '.number_format($max,0,',','.'),
+            'bukti.required' => 'Bukti Pembayaran Wajib Diisi!',
         ];
 
 
@@ -185,26 +209,18 @@ class OrderController extends Controller
             DB::beginTransaction();
             try{
 
-                $data = Ekskul::where('id', $id)->first();
-                $data->nama = $request->nama;
-                $data->pembina_id = $request->pembina_id;
-                $data->deskripsi = $request->deskripsi;
-                $data->tempat = $request->tempat;
-                $data->jadwal = json_encode($request->jadwal);
-                $data->mulai = $request->mulai;
-                $data->selesai = $request->selesai;
-                $data->status = $request->status;
-                if($request->foto){
-                    if(!empty($data->foto)){
-                        $cek = Storage::disk('public')->exists($data->foto);
-                        if($cek)
-                        {
-                            Storage::disk('public')->delete($data->foto);
-                        }
-                    }
-                    $fileName = time() . '.' . $request->foto->extension();
-                    Storage::disk('public')->putFileAs('uploads/ekskul', $request->foto, $fileName);
-                    $data->foto = '/uploads/ekskul/'.$fileName;
+                $data = new Payment();
+                $data->order_id = $id;
+                $data->bank = $request->bank;
+                $data->pengirim = $request->pengirim;
+                $data->tgl = Carbon::parse($request->tgl);
+                $data->jumlah = $request->jumlah;
+                $data->status = 'pending';
+
+                if($request->bukti){
+                    $fileName = time() . '.' . $request->bukti->extension();
+                    Storage::disk('public')->putFileAs('uploads/pembayaran', $request->bukti, $fileName);
+                    $data->bukti = '/uploads/pembayaran/'.$fileName;
                 }
                 $data->save();
 
@@ -214,7 +230,7 @@ class OrderController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('ekskul.index');
+            return redirect()->route('order.show', $id);
         }
     }
 
@@ -333,18 +349,80 @@ class OrderController extends Controller
     
     private function getNumber()
     {
-        $q = Booking::select(DB::raw('MAX(RIGHT(nomor,5)) AS kd_max'));
+        $q = Order::select(DB::raw('MAX(RIGHT(nomor,5)) AS kd_max'));
 
-        $code = 'BKN/';
+        $code = 'PSN/';
         $no = 1;
         date_default_timezone_set('Asia/Jakarta');
 
         if($q->count() > 0){
             foreach($q->get() as $k){
-                return $code . date('ym') .'/'.sprintf("%05s", abs(((int)$k->kd_max) + 1));
+                return $code .sprintf("%05s", abs(((int)$k->kd_max) + 1));
             }
         }else{
-            return $code . date('ym') .'/'. sprintf("%05s", $no);
+            return $code . sprintf("%05s", $no);
         }
+    }
+
+    
+    
+    public function pdf($id)
+    {
+        $data = Order::with(['user','produk'])->where('id', $id)
+        ->first();
+
+        $pdf = PDF::loadView('pdf.invoice', [
+            'data' => $data,
+        ], [ ], [
+            'format' => 'A4-P'
+        ]);
+
+        return $pdf->stream('Invoice '. $data->nomor .'.pdf');
+    }
+
+    public function kontrak($id)
+    {
+        $data = Order::with(['user','produk'])->where('id', $id)
+        ->first();
+
+        // return view('pdf.kontrak', compact('data'));
+        $today = Carbon::now();
+        $date = Collect([
+            'hari' => ucwords($today->translatedFormat('l')),
+            'tgl' => ucwords($this->terbilang($today->translatedFormat('d'))),
+            'bulan' => $today->translatedFormat('F'),
+            'tahun' => ucwords($this->terbilang($today->translatedFormat('Y'))),
+        ]);
+
+        $pdf = PDF::loadView('pdf.kontrak', [
+            'data' => $data,
+            'date' => $date,
+        ], [ ], [
+            'format' => 'A4-P',
+            'margin_top' => '200px',
+        ]);
+
+        return $pdf->stream('Invoice '. $data->nomor .'.pdf');
+    }
+
+    private function terbilang($x) {
+        $angka = ["", "satu", "dua", "tiga", "empat", "lima", "enam", "tujuh", "delapan", "sembilan", "sepuluh", "sebelas"];
+      
+        if ($x < 12)
+          return " " . $angka[$x];
+        elseif ($x < 20)
+          return $this->terbilang($x - 10) . " belas";
+        elseif ($x < 100)
+          return $this->terbilang($x / 10) . " puluh" . $this->terbilang($x % 10);
+        elseif ($x < 200)
+          return "seratus" . $this->terbilang($x - 100);
+        elseif ($x < 1000)
+          return $this->terbilang($x / 100) . " ratus" . $this->terbilang($x % 100);
+        elseif ($x < 2000)
+          return "seribu" . $this->terbilang($x - 1000);
+        elseif ($x < 1000000)
+          return $this->terbilang($x / 1000) . " ribu" . $this->terbilang($x % 1000);
+        elseif ($x < 1000000000)
+          return $this->terbilang($x / 1000000) . " juta" . $this->terbilang($x % 1000000);
     }
 }

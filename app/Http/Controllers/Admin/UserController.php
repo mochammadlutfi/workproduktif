@@ -32,7 +32,6 @@ class UserController extends Controller
                             Aksi
                         </button>
                         <div class="dropdown-menu fs-sm" aria-labelledby="dropdown-default-outline-primary" style="">';
-                        $btn .= '<a class="dropdown-item" href="'. route('admin.user.riwayat', $row->id).'"><i class="si si-list me-1"></i>Riwayat Training</a>';
                         $btn .= '<a class="dropdown-item" href="'. route('admin.user.edit', $row->id).'"><i class="si si-note me-1"></i>Ubah</a>';
                         $btn .= '<a class="dropdown-item" href="javascript:void(0)" onclick="hapus('. $row->id.')"><i class="si si-trash me-1"></i>Hapus</a>';
                     $btn .= '</div></div>';
@@ -262,24 +261,20 @@ class UserController extends Controller
         return response()->json($data);
     }
 
-    
-    public function riwayat($id, Request $request)
+    public function select(Request $request)
     {
-        if ($request->ajax()) {
-            $data = UserTraining::with('training')->where('user_id', $id)->get();
+        if(!isset($request->searchTerm)){
+            $fetchData = User::orderBy('created_at', 'DESC')->get();
+          }else{
+            $cari = $request->searchTerm;
+            $fetchData = User::where('nama','LIKE',  '%' . $cari .'%')->orderBy('created_at', 'DESC')->get();
+          }
 
-            return DataTables::of($data)
-                ->addIndexColumn()
-                ->editColumn('tgl', function ($row) {
-                    return Carbon::parse($row->created_at)->translatedFormat('d F Y');
-                })
-                ->rawColumns(['action']) 
-                ->make(true);
-        }
-        $data = User::where('id', $id)->first();
+          $data = array();
+          foreach($fetchData as $row) {
+            $data[] = array("id" =>$row->id, "text"=>$row->nama);
+          }
 
-        return view('admin.user.riwayat',[
-            'data' => $data
-        ]);
+          return response()->json($data);
     }
 }

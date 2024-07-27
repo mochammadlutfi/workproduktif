@@ -37,13 +37,13 @@ class ProfilController extends Controller
     {
         $rules = [
             'nama' => 'required|string',
-            'username' => 'required|unique:users,username',
+            'email' => 'required|unique:users,email,'.auth()->guard('web')->user()->id,
         ];
 
         $pesan = [
             'nama.required' => 'Nama Lengkap Wajib Diisi!',
-            'username.required' => 'Username Wajib Diisi!',
-            'username.unique' => 'Username Sudah Terdaftar!',
+            'email.required' => 'Alamat Email Wajib Diisi!',
+            'email.unique' => 'Alamat Email Sudah Terdaftar!',
         ];
 
         $validator = Validator::make($request->all(), $rules, $pesan);
@@ -55,7 +55,11 @@ class ProfilController extends Controller
                 
                 $data = User::where('id', auth()->user()->id)->first();
                 $data->nama = $request->nama;
-                $data->username = $request->username;
+                $data->perusahaan = $request->perusahaan;
+                $data->jabatan = $request->jabatan;
+                $data->email = $request->email;
+                $data->hp = $request->telp;
+                $data->alamat = $request->alamat;
                 $data->save();
 
             }catch(\QueryException $e){
@@ -64,7 +68,7 @@ class ProfilController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('home');
+            return redirect()->route('profil.edit');
         }
     }
 

@@ -3,7 +3,8 @@
     'id' => '',
     'label' => '',
     'name' => '',
-    'options' => []
+    'options' => [],
+    'value' => ''
 ])
 
 

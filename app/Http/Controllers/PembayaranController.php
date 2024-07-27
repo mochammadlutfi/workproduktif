@@ -51,6 +51,7 @@ class PembayaranController extends Controller
             ->make(true);
     }
 
+
     /**
      * Store a newly created resource in storage.
      *
@@ -59,38 +60,33 @@ class PembayaranController extends Controller
      */
     public function store(Request $request)
     {
-        // dd($request->all());
-        $booking = Booking::where('id', $request->booking_id)
-        ->withSum([ 'bayar' => fn ($query) => $query->where('status', 'setuju')], 'jumlah')
-        ->first();
-        $max = $booking->total_bayar - $booking->bayar_sum_jumlah;
         $rules = [
             'tgl' => 'required',
-            'jumlah' => 'required|max:'.$max,
+            'jumlah' => 'required',
+            'bank' => 'required',
             'bukti' => 'required',
         ];
 
         $pesan = [
             'tgl.required' => 'Tanggal Bayar Wajib Diisi!',
             'jumlah.required' => 'Jumlah Wajib Diisi!',
-            'jumlah.max' => 'Jumlah Pembayaran Maksimal Rp '.number_format($max,0,',','.'),
+            'bank.required' => 'Bank Wajib Diisi!',
+            // 'jumlah.max' => 'Jumlah Pembayaran Maksimal Rp '.number_format($max,0,',','.'),
             'bukti.required' => 'Bukti Pembayaran Wajib Diisi!',
         ];
 
         $validator = Validator::make($request->all(), $rules, $pesan);
         if ($validator->fails()){
-            return response()->json([
-                'fail' => true,
-                'errors' => $validator->errors()
-            ]);
+                return back()->withInput()->withErrors($validator->errors());
         }else{
             DB::beginTransaction();
             try{
                 $data = new Payment();
-                $data->booking_id = $request->booking_id;
+                $data->order_id = $request->order_id;
+                $data->user_id = $request->user_id;
                 $data->tgl = Carbon::parse($request->tgl);
                 $data->jumlah = $request->jumlah;
-                $data->status = 'pending';
+                $data->status = $request->status;
 
                 if($request->bukti){
                     $fileName = time() . '.' . $request->bukti->extension();
@@ -104,16 +100,11 @@ class PembayaranController extends Controller
 
             }catch(\QueryException $e){
                 DB::rollback();
-                return response()->json([
-                    'fail' => true,
-                    'pesan' => $e,
-                ]);
+                dd($e);
             }
 
             DB::commit();
-            return response()->json([
-                'fail' => false,
-            ]);
+            return redirect()->route('admin.payment.show', $data->id);
         }
     }
 

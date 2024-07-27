@@ -33,9 +33,14 @@
                         <div class="col-md-6">
                             <x-input-field type="text" name="tgl" id="tgl" label="Tanggal"/>
                             <div class="mb-4">
-                                <label>Harga per jam</label>
+                                <label>Harga / Jam</label>
                                 <div class="fw-medium py-2" id="hargaJamShow">Rp 0</div>
                                 <input type="hidden" id="hargaJamVal" />
+                            </div>
+                            <div class="mb-4">
+                                <label>Harga Operator / Jam</label>
+                                <div class="fw-medium py-2" id="hargaOperatorShow">Rp 0</div>
+                                <input type="hidden" id="hargaOperatorVal" />
                             </div>
                         </div>
                     </div>
@@ -74,6 +79,9 @@
 
                     $("#field-lama").attr("min", response.min_sewa);
                     $("#field-lama").val(response.min_sewa);
+                    
+                    $("#hargaOperatorShow").text(formatRupiah(response.harga_operator, 'Rp. '));
+                    $("#hargaOperatorVal").val(response.harga_operator);
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     alert('Error adding / update data');

@@ -11,7 +11,7 @@ use DataTables;
 use App\Models\Order;
 use App\Models\Produk;
 use App\Models\User;
-
+use PDF;
 class OrderController extends Controller
 {
     /**
@@ -275,5 +275,98 @@ class OrderController extends Controller
         }else{
             return $code . date('ym') .'/'. sprintf("%05s", $no);
         }
+    }
+
+    public function select(Request $request)
+    {
+            $cari = $request->searchTerm;
+            $user_id = $request->user_id;
+            $fetchData = Order::
+            when(isset($cari), function($q) use($cari){
+                return $q->where('nomor','LIKE',  '%' . $cari .'%');
+            })->when(isset($user_id), function($q) use($user_id){
+                return $q->where('user_id', $user_id);
+            })
+            ->orderBy('created_at', 'DESC')->get();
+
+          $data = array();
+          foreach($fetchData as $row) {
+            $data[] = array("id" =>$row->id, "text"=> $row->nomor);
+          }
+
+          return response()->json($data);
+    }
+
+    
+    public function json(Request $request)
+    {
+        if(!isset($request->id)){
+            $data = Order::where('id', $request->id)->get();
+        }else{
+            $data = Order::where('id', $request->id)->first();
+        }
+
+          return response()->json($data);
+    }
+
+    
+    public function pdf($id)
+    {
+        $data = Order::with(['user','produk'])->where('id', $id)
+        ->first();
+
+        $pdf = PDF::loadView('pdf.invoice', [
+            'data' => $data,
+        ], [ ], [
+            'format' => 'A4-P'
+        ]);
+
+        return $pdf->stream('Invoice '. $data->nomor .'.pdf');
+    }
+
+    public function kontrak($id)
+    {
+        $data = Order::with(['user','produk'])->where('id', $id)
+        ->first();
+
+        // return view('pdf.kontrak', compact('data'));
+        $today = Carbon::now();
+        $date = Collect([
+            'hari' => ucwords($today->translatedFormat('l')),
+            'tgl' => ucwords($this->terbilang($today->translatedFormat('d'))),
+            'bulan' => $today->translatedFormat('F'),
+            'tahun' => ucwords($this->terbilang($today->translatedFormat('Y'))),
+        ]);
+
+        $pdf = PDF::loadView('pdf.kontrak', [
+            'data' => $data,
+            'date' => $date,
+        ], [ ], [
+            'format' => 'A4-P',
+            'margin_top' => '200px',
+        ]);
+
+        return $pdf->stream('Invoice '. $data->nomor .'.pdf');
+    }
+
+    private function terbilang($x) {
+        $angka = ["", "satu", "dua", "tiga", "empat", "lima", "enam", "tujuh", "delapan", "sembilan", "sepuluh", "sebelas"];
+      
+        if ($x < 12)
+          return " " . $angka[$x];
+        elseif ($x < 20)
+          return $this->terbilang($x - 10) . " belas";
+        elseif ($x < 100)
+          return $this->terbilang($x / 10) . " puluh" . $this->terbilang($x % 10);
+        elseif ($x < 200)
+          return "seratus" . $this->terbilang($x - 100);
+        elseif ($x < 1000)
+          return $this->terbilang($x / 100) . " ratus" . $this->terbilang($x % 100);
+        elseif ($x < 2000)
+          return "seribu" . $this->terbilang($x - 1000);
+        elseif ($x < 1000000)
+          return $this->terbilang($x / 1000) . " ribu" . $this->terbilang($x % 1000);
+        elseif ($x < 1000000000)
+          return $this->terbilang($x / 1000000) . " juta" . $this->terbilang($x % 1000000);
     }
 }

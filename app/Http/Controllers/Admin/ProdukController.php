@@ -114,9 +114,8 @@ class ProdukController extends Controller
                 $data->harga_jam = $request->harga_jam;
                 $data->min_sewa = $request->min_sewa;
                 $data->harga_harian = $request->harga_harian;
-                $data->harga_mingguan = $request->harga_mingguan;
-                $data->harga_bulanan = $request->harga_bulanan;
-                $data->harga_operator = $request->harga_operator;
+                $data->operator_jam = $request->operator_jam;
+                $data->operator_hari = $request->operator_hari;
                 $data->spesifikasi = json_encode($request->spek);
                 
                 if($request->foto){
@@ -158,12 +157,9 @@ class ProdukController extends Controller
      */
     public function edit($id)
     {
-        $data = Training::where('id', $id)->first();
+        $data = Produk::where('id', $id)->first();
 
-        $data->tgl_daftar = $data->tgl_mulai_daftar .' - '. $data->tgl_selesai_daftar;
-        $data->tgl_training = $data->tgl_mulai .' - '. $data->tgl_selesai;
-
-        $kategori = Kategori::orderBy('nama', "ASC")->get();
+        $kategori = Kategori::select(['id as value', 'nama as label'])->orderBy('nama', "ASC")->get()->toArray();
         return view('admin.produk.edit',[
             'data' => $data,
             'kategori' =>  $kategori
@@ -181,20 +177,12 @@ class ProdukController extends Controller
     {
         $rules = [
             'nama' => 'required',
-            'deskripsi' => 'required',
-            'lokasi' => 'required',
-            'tgl_daftar' => 'required',
-            'tgl_training' => 'required',
-            'slot' => 'required',
+            'model' => 'required',
         ];
 
         $pesan = [
-            'nama.required' => 'Nama Wajib Diisi!',
-            'deskripsi.required' => 'Deskripsi Wajib Diisi!',
-            'lokasi.required' => 'Lokasi Wajib Diisi!',
-            'tgl_daftar.required' => 'Tanggal Pendaftaran Wajib Diisi!',
-            'tgl_training.required' => 'Tanggal Training Wajib Diisi!',
-            'slot.required' => 'Slot Peserta Wajib Diisi!',
+            'nama.required' => 'Nama tidak boleh kosong',
+            'model.required' => 'Model tidak boleh kosong',
         ];
 
         $validator = Validator::make($request->all(), $rules, $pesan);
@@ -203,33 +191,25 @@ class ProdukController extends Controller
         }else{
             DB::beginTransaction();
             try{
-                $tgl_daftar = explode(" - ",$request->tgl_daftar);
-                $tgl_training = explode(" - ",$request->tgl_training);
-                
-                $data = Training::where('id', $id)->first();
+
+                $data = Produk::where('id', $id)->first();
                 $data->nama = $request->nama;
-                $data->lokasi = $request->lokasi;
+                $data->model = $request->model;
                 $data->deskripsi = $request->deskripsi;
-                $data->tgl_mulai_daftar = $tgl_daftar[0];
-                $data->tgl_selesai_daftar = (count($tgl_daftar) > 1) ? $tgl_daftar[1] : null;
-                $data->tgl_mulai = $tgl_training[0];
-                $data->tgl_selesai = (count($tgl_training) > 1) ? $tgl_training[1] : null;
-                $data->slot = $request->slot;
-                $data->status = $request->status;
-                $data->kategori_id = $request->kategori;
-                $data->harga = isset($request->harga) ? $request->harga : 0;
+                $data->kategori_id = $request->kategori_id;
+                $data->harga_jam = $request->harga_jam;
+                $data->min_sewa = $request->min_sewa;
+                $data->harga_harian = $request->harga_harian;
+                $data->operator_jam = $request->operator_jam;
+                $data->operator_hari = $request->operator_hari;
+                $data->spesifikasi = json_encode($request->spek);
                 
                 if($request->foto){
                     $fileName = time() . '.' . $request->foto->extension();
-                    Storage::disk('public')->putFileAs('uploads/training', $request->foto, $fileName);
-                    $data->foto = '/uploads/training/'.$fileName;
+                    Storage::disk('public')->putFileAs('uploads/produk', $request->foto, $fileName);
+                    $data->foto = '/uploads/produk/'.$fileName;
                 }
-               
-                if($request->hasfile('document')){
-                    $fileName = time() . '.' . $request->document->extension();
-                    Storage::disk('public')->putFileAs('uploads/training', $request->document, $fileName);
-                    $data->document = '/uploads/training/'.$fileName;
-                }
+
                 $data->save();
 
             }catch(\QueryException $e){
