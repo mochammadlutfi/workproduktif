@@ -39,16 +39,24 @@ class OrderController extends Controller
                     $btn .= '</div></div>';
                     return $btn; 
                 })
+                ->editColumn('tgl', function ($row) {
+                    $tgl =  Carbon::parse($row->tgl)->translatedFormat('d F Y');
+
+                    return $tgl;
+                })
+                ->editColumn('total', function ($row) {
+                    return 'Rp '.number_format($row->total,0,',','.');
+                })
                 ->editColumn('status', function ($row) {
-                    if($row->status == 'belum bayar'){
+                    if($row->status == 'Belum Bayar'){
                         return '<span class="badge bg-danger">Belum Bayar</span>';
-                    }else if($row->status == 'sebagian'){
+                    }else if($row->status == 'Sebagian'){
                         return '<span class="badge bg-warning">Sebagian</span>';
                     }else if($row->status == 'pending'){
                         return '<span class="badge bg-primary">Menunggu Konfirmasi</span>';
-                    }else if($row->status == 'lunas'){
+                    }else if($row->status == 'Lunas'){
                         return '<span class="badge bg-success">Lunas</span>';
-                    }else if($row->status == 'batal'){
+                    }else if($row->status == 'Batal'){
                         return '<span class="badge bg-secondary">Batal</span>';
                     }
                 })

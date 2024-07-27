@@ -70,9 +70,6 @@ class UserController extends Controller
         $rules = [
             'nama' => 'required|string',
             'email' => 'required|unique:users,email',
-            'jk' => 'required',
-            'tmp_lahir' => 'required',
-            'tgl_lahir' => 'required',
             'hp' => 'required',
             'alamat' => 'required',
         ];
@@ -81,9 +78,6 @@ class UserController extends Controller
             'email.required' => 'Email Wajib Diisi!',
             'email.unique' => 'Email Sudah Terdaftar!',
             'nama.required' => 'Nama Lengkap Wajib Diisi!',
-            'jk.required' => 'Jenis Kelamin Wajib Diisi!',
-            'tmp_lahir.required' => 'Tempat Lahir Diisi!',
-            'tgl_lahir.required' => 'Tanggal Lahir Diisi!',
             'hp.required' => 'No HP Wajib Diisi!',
             'alamat.required' => 'Alamat Wajib Diisi!',
         ];
@@ -100,13 +94,9 @@ class UserController extends Controller
                 $data->nama = $request->nama;
                 $data->email = $request->email;
                 $data->hp = $request->hp;
-                $data->jk = $request->jk;
-                $auth->tmp_lahir = $request->tmp_lahir;
-                $auth->tgl_lahir = $request->tgl_lahir;
-                $auth->instansi = $request->instansi;
-                $auth->jabatan = $request->jabatan;
+                $data->perusahaan = $request->perusahaan;
+                $data->jabatan = $request->jabatan;
                 $data->alamat = $request->alamat;
-                $data->is_member = $request->is_member;
                 $data->password = Hash::make($request->password);
                 $data->save();
 
@@ -171,9 +161,6 @@ class UserController extends Controller
         $rules = [
             'nama' => 'required|string',
             'email' => 'required|unique:users,email,'.$id,
-            'jk' => 'required',
-            'tmp_lahir' => 'required',
-            'tgl_lahir' => 'required',
             'hp' => 'required',
             'alamat' => 'required',
         ];
@@ -182,9 +169,6 @@ class UserController extends Controller
             'email.required' => 'Email Wajib Diisi!',
             'email.unique' => 'Email Sudah Terdaftar!',
             'nama.required' => 'Nama Lengkap Wajib Diisi!',
-            'jk.required' => 'Jenis Kelamin Wajib Diisi!',
-            'tmp_lahir.required' => 'Tempat Lahir Diisi!',
-            'tgl_lahir.required' => 'Tanggal Lahir Diisi!',
             'hp.required' => 'No HP Wajib Diisi!',
             'alamat.required' => 'Alamat Wajib Diisi!',
         ];
@@ -199,15 +183,11 @@ class UserController extends Controller
 
                 $data = User::where('id', $id)->first();
                 $data->nama = $request->nama;
-                $data->jk = $request->jk;
-                $auth->tmp_lahir = $request->tmp_lahir;
-                $auth->tgl_lahir = $request->tgl_lahir;
-                $auth->instansi = $request->instansi;
-                $auth->jabatan = $request->jabatan;
-                $data->hp = $request->hp;
                 $data->email = $request->email;
+                $data->hp = $request->hp;
+                $data->perusahaan = $request->perusahaan;
+                $data->jabatan = $request->jabatan;
                 $data->alamat = $request->alamat;
-                $data->is_member = $request->is_member;
                 $data->save();
 
             }catch(\QueryException $e){
