@@ -152,6 +152,11 @@ class KategoriController extends Controller
 
                 $data = Kategori::where('id', $id)->first();
                 $data->nama = $request->nama;
+                if($request->foto){
+                    $fileName = time() . '.' . $request->foto->extension();
+                    Storage::disk('public')->putFileAs('/uploads/kategori', $request->foto, $fileName);
+                    $data->foto = '/uploads/kategori/'.$fileName;
+                }
                 $data->save();
 
             }catch(\QueryException $e){
