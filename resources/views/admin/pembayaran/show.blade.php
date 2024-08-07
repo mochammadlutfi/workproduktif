@@ -1,134 +1,80 @@
 <x-app-layout>
     <div class="content">
         <div class="content-heading d-flex justify-content-between align-items-center">
-            <span>Data Pembayaran</span>
+            <span>Detail Pembayaran</span>
             <div class="space-x-1">
-                <a type="button" class="btn btn-sm btn-primary" href="{{ route('admin.payment.create') }}">
-                    <i class="fa fa-plus me-1"></i>
-                    Tambah Pembayaran
-                </a>
+                @if ($data->status == 'pending')
+                <button type="button" class="btn btn-primary" onclick="updateStatus('terima')">
+                    <i class="fa fa-check"></i>
+                    Terima
+                </button>
+                <button type="button" class="btn btn-danger" onclick="updateStatus('tolak')">
+                    <i class="fa fa-times"></i>
+                    Tolak
+                </button>
+                @endif
             </div>
         </div>
         <div class="block block-rounded">
             <div class="block-content p-3">
-                <table class="table table-bordered datatable w-100">
-                    <thead>
-                        <tr>
-                            <th width="60px">No</th>
-                            <th>Konsumen</th>
-                            <th>No Pemesanan</th>
-                            <th>Tanggal</th>
-                            <th>Jumlah</th>
-                            <th>Status</th>
-                            <th width="100px">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
+                <div class="row">
+                    <div class="col-md-6">
+                        <x-field-read label="No Pesanan" value="{{ $data->order->nomor }}"/>
+                        <x-field-read label="Tanggal Daftar" value="{{ \Carbon\Carbon::parse($data->created_at)->translatedFormat('d F Y') }}"/>
+                        <x-field-read label="Tanggal Pembayaran" value="{{ \Carbon\Carbon::parse($data->tgl)->translatedFormat('d F Y') }}"/>
+                        <x-field-read label="Tujuan Pembayaran" value="{{ $data->bank }}"/>
+                        <x-field-read label="Jumlah Pembayaran" value="Rp {{  number_format($data->jumlah,0,',','.') }}"/>
+                            <x-field-read label="A.n Pengirim" value="{{ $data->pengirim }}"/>
+                            
+                        <x-field-read label="Status">
+                            <x-slot name="value">
+                                @if($data->status == 'pending')
+                                    <span class="badge bg-warning px-3">Pending</span>
+                                @elseif($data->status == 'terima')
+                                <span class="badge bg-success px-3">Diterima</span>
+                                @elseif($data->status == 'tolak')
+                                <span class="badge bg-danger px-3">Ditolak</span>
+                                @endif
+                            </x-slot>
+                        </x-field-read>
+
+                    </div>
+                    <div class="col-md-6">
+                        <a href="{{ $data->bukti }}" data-lightbox="image-1" data-title="My caption">
+                            <img src="{{ $data->bukti }}" class="w-25"/>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
     
     @push('scripts')
         <script>
-            $(function () {
-                $('.datatable').DataTable({
-                    processing: true,
-                    serverSide: true,
-                    dom: "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>><'row'<'col-sm-12'tr>><'r" +
-                            "ow'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-                    ajax: "{{ route('admin.payment.index') }}",
-                    columns: [
-                        {
-                            data: 'DT_RowIndex',
-                            name: 'DT_RowIndex'
-                        }, {
-                            data: 'order.user.nama',
-                            name: 'order.user.nama'
-                        }, {
-                            data: 'order.nomor',
-                            name: 'order.nomor'
-                        }, {
-                            data: 'created_at',
-                            name: 'created_at'
-                        }, {
-                            data: 'jumlah',
-                            name: 'jumlah'
-                        }, {
-                            data: 'status',
-                            name: 'status'
-                        }, {
-                            data: 'action',
-                            name: 'action'
-                        }
-                    ]
-                });
-            });
 
-            $('#field-booking_id').select2({
-                dropdownParent: $("#modal-form")
-            });
+function updateStatus(status){
+                var text = '';
+                if(status == 'terima'){
+                    text = 'Terima pembayaran?';
+                }else{
+                    text = 'Tolak pembayaran?';
+                }
 
-            function addPayment(){
-                var modalForm = bootstrap.Modal.getOrCreateInstance(document.getElementById('modal-form'));
-                modalForm.show();
-            }
-
-            function modalShow(id){
-                $.ajax({
-                    url: "/admin/pembayaran/"+id,
-                    type: "GET",
-                    dataType: "html",
-                    success: function (response) {
-                        var el = document.getElementById('modal-show');
-                        $("#detailPembayaran").html(response);
-                        var myModal = bootstrap.Modal.getOrCreateInstance(el);
-                        myModal.show();
-                    },
-                    error: function (error) {
-                    }
-
-                });
-            }
-            
-            function updateStatus(id, status, booking_id){
-                // console.log(status);
-                $.ajax({
-                    url: "/admin/pembayaran/"+id +"/status",
-                    type: "POST",
-                    data : {
-                        booking_id : booking_id,
-                        status : status,
-                        _token : $("meta[name='csrf-token']").attr("content"),
-                    },
-                    success: function (response) {
-                        // console.log(response);
-                        location.reload();
-                        var el = document.getElementById('modal-show');
-                        $('.datatable').DataTable().ajax.reload();
-                        // $("#detailPembayaran").html(response);
-                        var myModal = bootstrap.Modal.getOrCreateInstance(el);
-                        myModal.hide();
-                    },
-                    error: function (error) {
-                    }
-                });
-            }
-            
-            function hapus(id){
                 Swal.fire({
                     icon : 'warning',
-                    text: 'Hapus Data?',
+                    text: text,
                     showCancelButton: true,
-                    confirmButtonText: 'Ya, Hapus!',
-                    cancelButtonText: `Tidak, Jangan!`,
+                    confirmButtonText: 'Ya',
+                    cancelButtonText: `Tidak`,
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: "/admin/pembayaran/"+ id +"/delete",
-                            type: "DELETE",
+                            url: "{{ route('admin.payment.status', $data->id)}}",
+                            type: "POST",
                             headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+                            data : {
+                                status : status
+                            },
                             success: function(data) {
                                 if(data.fail == false){
                                     Swal.fire({
@@ -167,7 +113,7 @@
                             }
                         });
                     }
-                })
+                });
             }
         </script>
     @endpush

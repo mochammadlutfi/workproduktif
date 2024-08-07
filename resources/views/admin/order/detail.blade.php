@@ -72,7 +72,7 @@
                 ajax: {
                     url : "{{ route('admin.payment.index') }}",
                     data : function(data){
-                        data.booking_id = "{{ $data->id }}";
+                        data.order_id = "{{ $data->id }}";
                     },
                 },
                 columns: [

@@ -24,15 +24,19 @@ class PembayaranController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
+            $order_id = $request->order_id;
             $data = Payment::with(['order' => function($q){
                 return $q->with('user');
             }])
+            ->when($order_id, function($q, $order_id){
+                return $q->where('order_id', $order_id);
+            })
             ->orderBy('id', 'DESC')->get();
 
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('action', function($row){
-                    $btn = '<button type="button" class="btn btn-primary btn-sm" onclick="modalShow('. $row->id .')">Detail</a>';
+                    $btn = '<a class="btn btn-primary btn-sm" href="'. route('admin.payment.show', $row->id) .'">Detail</a>';
                     return $btn; 
                 })
                 ->editColumn('tgl', function ($row) {
@@ -146,7 +150,7 @@ class PembayaranController extends Controller
     {
         DB::beginTransaction();
         try{
-            $data = UserTraining::where('id', $id)->first();
+            $data = Payment::where('id', $id)->first();
             $data->status = $request->status;
             $data->save();
         }catch(\QueryException $e){
@@ -279,49 +283,6 @@ class PembayaranController extends Controller
         ]);
     }
 
-    public function anggota($id, Request $request)
-    {
-        if ($request->ajax()) {
-
-            $data = DB::table("anggota_eskul as a")
-            ->select('a.*', 'b.nis', 'b.nama', 'b.kelas', 'b.hp', 'b.email', 'b.jk', 'b.alamat', 'c.nama as ekskul')
-            ->join("anggota as b", "b.id", "=", "a.anggota_id")
-            ->join("ekskul as c", "c.id", "=", "a.ekskul_id")
-            ->where('a.ekskul_id', $id)
-            ->get();
-
-            return Datatables::of($data)
-                ->addIndexColumn()
-                ->addColumn('action', function($row){
-                    $actionBtn = '<a href="'.route('anggota.show', $row->id).'" class="edit btn btn-primary btn-sm">Detail</a>';
-                    return $actionBtn;
-                })
-                ->editColumn('created_at', function ($row) {
-                    return Carbon::parse($row->created_at)->translatedFormat('d F Y');
-                })
-                ->editColumn('status', function ($row) {
-                    if($row->status == 'draft'){
-                        return '<span class="badge bg-warning">Menunggu Konfirmasi</span>';
-                    }else if($row->status == 'aktif'){
-                        return '<span class="badge bg-success">Aktif</span>';
-                    }else if($row->status == 'tolak'){
-                        return '<span class="badge bg-success">Ditolak</span>';
-                    }else{
-                        return '<span class="badge bg-secondary">Keluar</span>';
-                    }
-                })
-                ->rawColumns(['action', 'status']) 
-                ->make(true);
-        }
-    }
-
-    
-    public function cek(Request $request)
-    {
-        dd($request->all());
-    }
-
-    
     private function getNumber()
     {
         $q = Booking::select(DB::raw('MAX(RIGHT(nomor,5)) AS kd_max'));

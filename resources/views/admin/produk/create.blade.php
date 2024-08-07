@@ -14,7 +14,7 @@
         <form method="POST" action="{{ route('admin.produk.store') }}" enctype="multipart/form-data">
             @csrf
             <div class="content-heading d-flex justify-content-between align-items-center">
-                <span>{{ isset($data) ? 'Edit Training' : 'Tambah Training' }}</span>
+                <span>Tambah Produk</span>
                 <div class="space-x-1">
                     <button type="submit" class="btn btn-primary">
                         <i class="fa fa-check me-1"></i>

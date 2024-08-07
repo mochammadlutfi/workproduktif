@@ -29,6 +29,36 @@
             </div>
         </div>
     </div>
+    <div
+        class="modal"
+        id="modal-show"
+        tabindex="-1"
+        aria-labelledby="modal-show"
+        style="display: none;"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form id="form-payment"  onsubmit="return false;" enctype="multipart/form-data">
+                    <div class="block block-rounded shadow-none mb-0">
+                        <div class="block-header block-header-default">
+                            <h3 class="block-title">Detail Pembayaran</h3>
+                            <div class="block-options">
+                                <button
+                                    type="button"
+                                    class="btn-block-option"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Close">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="block-content fs-sm" id="detailPembayaran">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     
     @push('scripts')
         <script>
@@ -92,29 +122,6 @@
                 });
             }
             
-            function updateStatus(id, status, booking_id){
-                // console.log(status);
-                $.ajax({
-                    url: "/admin/pembayaran/"+id +"/status",
-                    type: "POST",
-                    data : {
-                        booking_id : booking_id,
-                        status : status,
-                        _token : $("meta[name='csrf-token']").attr("content"),
-                    },
-                    success: function (response) {
-                        // console.log(response);
-                        location.reload();
-                        var el = document.getElementById('modal-show');
-                        $('.datatable').DataTable().ajax.reload();
-                        // $("#detailPembayaran").html(response);
-                        var myModal = bootstrap.Modal.getOrCreateInstance(el);
-                        myModal.hide();
-                    },
-                    error: function (error) {
-                    }
-                });
-            }
             
             function hapus(id){
                 Swal.fire({

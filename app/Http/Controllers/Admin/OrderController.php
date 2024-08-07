@@ -341,9 +341,9 @@ class OrderController extends Controller
         $today = Carbon::now();
         $date = Collect([
             'hari' => ucwords($today->translatedFormat('l')),
-            'tgl' => ucwords($this->terbilang($today->translatedFormat('d'))),
+            'tgl' => ucwords($this->terbilang((int)$today->translatedFormat('d'))),
             'bulan' => $today->translatedFormat('F'),
-            'tahun' => ucwords($this->terbilang($today->translatedFormat('Y'))),
+            'tahun' => ucwords($this->terbilang((int)$today->translatedFormat('Y'))),
         ]);
 
         $pdf = PDF::loadView('pdf.kontrak', [

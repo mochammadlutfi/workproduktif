@@ -4,7 +4,7 @@
 
     <div class="content">
             <div class="content-heading d-flex justify-content-between align-items-center">
-                <span>Tambah Pemabayaran Baru</span>
+                <span>Tambah Pembayaran Baru</span>
             </div>
             <div class="block block-rounded">
                 <div class="block-content">

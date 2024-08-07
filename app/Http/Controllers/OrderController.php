@@ -65,38 +65,43 @@ class OrderController extends Controller
     public function payment($id, Request $request)
     {
         if ($request->ajax()) {
-            $data = Payment::where('order_id', $id)
-            ->orderBy('id', 'DESC')
-            ->get();
+            $order_id = $request->order_id;
+            $data = Payment::with(['order' => function($q){
+                return $q->with('user');
+            }])
+            ->when($order_id, function($q, $order_id){
+                return $q->where('order_id', $order_id);
+            })
+            ->orderBy('id', 'DESC')->get();
 
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('action', function($row){
-                    $btn = '<a href="'. route('order.show', $row->id) .'" class="btn btn-primary btn-sm">Detail</a>';
+                    $btn = '<a class="btn btn-primary btn-sm" href="'. route('admin.payment.show', $row->id) .'">Detail</a>';
                     return $btn; 
-                })
-                ->editColumn('created_at', function ($row) {
-                    return Carbon::parse($row->created_at)->translatedFormat('d F Y');
                 })
                 ->editColumn('tgl', function ($row) {
                     $tgl =  Carbon::parse($row->tgl)->translatedFormat('d F Y');
-
                     return $tgl;
                 })
+                ->editColumn('created_at', function ($row) {
+                    $tgl = Carbon::parse($row->created_at);
+
+                    return $tgl->translatedFormat('d M Y');
+                })
+                ->editColumn('jumlah', function ($row) {
+                    return 'Rp '.number_format($row->jumlah,0,',','.');
+                })
                 ->editColumn('status', function ($row) {
-                    if($row->status == 'Belum Bayar'){
-                        return '<span class="badge bg-danger">Belum Bayar</span>';
-                    }else if($row->status == 'sebagian'){
-                        return '<span class="badge bg-warning">Sebagian</span>';
-                    }else if($row->status == 'pending'){
-                        return '<span class="badge bg-primary">Menunggu Konfirmasi</span>';
-                    }else if($row->status == 'Lunas'){
-                        return '<span class="badge bg-success">Lunas</span>';
-                    }else if($row->status == 'Batal'){
-                        return '<span class="badge bg-secondary">Batal</span>';
+                    if($row->status == 'pending'){
+                        return '<span class="badge bg-danger">Menunggu Konfirmasi</span>';
+                    }else if($row->status == 'terima'){
+                        return '<span class="badge bg-success">Diterima</span>';
+                    }else if($row->status == 'tolak'){
+                        return '<span class="badge bg-danger">Ditolak</span>';
                     }
                 })
-                ->rawColumns(['action', 'status', 'tgl']) 
+                ->rawColumns(['action', 'status', 'jumlah']) 
                 ->make(true);
         }
         $data = Order::where('id', $id)
@@ -269,42 +274,6 @@ class OrderController extends Controller
         ]);
     }
 
-    public function anggota($id, Request $request)
-    {
-        if ($request->ajax()) {
-
-            $data = DB::table("anggota_eskul as a")
-            ->select('a.*', 'b.nis', 'b.nama', 'b.kelas', 'b.hp', 'b.email', 'b.jk', 'b.alamat', 'c.nama as ekskul')
-            ->join("anggota as b", "b.id", "=", "a.anggota_id")
-            ->join("ekskul as c", "c.id", "=", "a.ekskul_id")
-            ->where('a.ekskul_id', $id)
-            ->get();
-
-            return Datatables::of($data)
-                ->addIndexColumn()
-                ->addColumn('action', function($row){
-                    $actionBtn = '<a href="'.route('anggota.show', $row->id).'" class="edit btn btn-primary btn-sm">Detail</a>';
-                    return $actionBtn;
-                })
-                ->editColumn('created_at', function ($row) {
-                    return Carbon::parse($row->created_at)->translatedFormat('d F Y');
-                })
-                ->editColumn('status', function ($row) {
-                    if($row->status == 'draft'){
-                        return '<span class="badge bg-warning">Menunggu Konfirmasi</span>';
-                    }else if($row->status == 'aktif'){
-                        return '<span class="badge bg-success">Aktif</span>';
-                    }else if($row->status == 'tolak'){
-                        return '<span class="badge bg-success">Ditolak</span>';
-                    }else{
-                        return '<span class="badge bg-secondary">Keluar</span>';
-                    }
-                })
-                ->rawColumns(['action', 'status']) 
-                ->make(true);
-        }
-    }
-
     
     public function cek(Request $request)
     {
@@ -389,7 +358,7 @@ class OrderController extends Controller
         $today = Carbon::now();
         $date = Collect([
             'hari' => ucwords($today->translatedFormat('l')),
-            'tgl' => ucwords($this->terbilang($today->translatedFormat('d'))),
+            'tgl' => ucwords($this->terbilang((int)$today->translatedFormat('d'))),
             'bulan' => $today->translatedFormat('F'),
             'tahun' => ucwords($this->terbilang($today->translatedFormat('Y'))),
         ]);
