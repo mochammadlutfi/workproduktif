@@ -79,7 +79,7 @@
                                     <input type="text" class="form-control" name="spek[0][label]">
                                 </td>
                                 <td>
-                                    <input type="text" class="form-control" name="spek[0][nilai]">
+                                    <input type="text" class="form-control" name="spek[0][value]">
                                 </td>
                                 <td colspan="3">
                                     {{-- <button class="btn btn-danger w-100" type="button" id="btn-add">

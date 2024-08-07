@@ -26,19 +26,19 @@
                         </tr>
                         <tr>
                             <td>Harga Sewa / Jam</td>
-                            <td class="fw-bold">{{ $data->harga_jam }}</td>
+                            <td class="fw-bold"> Rp {{  number_format($d->harga_jam,0,',','.') }}</td>
                         </tr>
                         <tr>
                             <td>Harga Sewa / Hari</td>
-                            <td class="fw-bold">{{ $data->harga_harian }}</td>
+                            <td class="fw-bold"> Rp {{  number_format($d->harga_harian,0,',','.') }}</td>
                         </tr>
                         <tr>
                             <td>Harga Operator / Jam</td>
-                            <td class="fw-bold">{{ $data->operator_jam }}</td>
+                            <td class="fw-bold">Rp {{  number_format($d->operator_jam,0,',','.') }}</td>
                         </tr>
                         <tr>
                             <td>Harga Operator / Hari</td>
-                            <td class="fw-bold">{{ $data->operator_hari }}</td>
+                            <td class="fw-bold">Rp {{  number_format($d->operator_hari,0,',','.') }}</td>
                         </tr>
                     </table>
                     @if($data->spesifikasi)
