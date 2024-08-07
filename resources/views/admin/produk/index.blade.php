@@ -106,7 +106,7 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
-                        url: "/admin/Produk/"+ id +"/delete",
+                        url: "/admin/produk/"+ id +"/delete",
                         type: "DELETE",
                         headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
                         success: function(data) {
@@ -120,7 +120,7 @@
                                     icon: 'success',
                                     position : 'top-end'
                                 }).then((result) => {
-                                    window.location.replace("{{ route('admin.user.index') }}");
+                                    location.reload();
                                 });
                             }else{
                                 Swal.fire({
