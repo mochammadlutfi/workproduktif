@@ -21,7 +21,7 @@
                                         <div class="fs-xs">
                                             Harga Sewa /Jam
                                         </div>
-                                        <div class="fs-5 fw-bold">
+                                        <div class="fw-bold">
                                             Rp {{  number_format($d->harga_jam,0,',','.') }}
                                         </div>
                                     </div>
@@ -29,7 +29,7 @@
                                         <div class="fs-xs">
                                             Minimum Sewa 
                                         </div>
-                                        <div class="fs-5 fw-bold">
+                                        <div class="fw-bold">
                                             {{ $d->min_sewa }} Jam
                                         </div>
                                     </div>
@@ -37,7 +37,7 @@
                                         <div class="fs-xs">
                                             Harian Operator
                                         </div>
-                                        <div class="fs-5 fw-bold">
+                                        <div class="fw-bold">
                                             Rp {{  number_format($d->operator_hari,0,',','.') }}
                                         </div>
                                     </div>
