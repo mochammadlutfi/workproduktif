@@ -156,6 +156,14 @@
                                     <div id="showSubTotal">Rp {{ number_format($data->harga_harian,0,',','.') }}</div>
                                 </div>
                             </div>
+                            <div class="row mb-4">
+                                <div class="col-md-5 d-flex my-auto">
+                                    <label for="field-qty">Lokasi Project</label>
+                                </div>
+                                <div class="col-md-7">
+                                    <textarea class="form-control" id="field-lokasi" name="lokasi"></textarea>
+                                </div>
+                            </div>
                         </div>
                         <div
                             class="block-content block-content-full block-content-sm text-end border-top">

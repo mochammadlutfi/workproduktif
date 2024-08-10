@@ -88,6 +88,7 @@ Route::prefix('/admin')->name('admin.')->namespace('Admin')->group(function(){
             Route::prefix('/pemesanan')->name('order.')->group(function () {
                 Route::get('/','OrderController@index')->name('index');
                 Route::get('/create','OrderController@create')->name('create');
+                Route::get('/report','OrderController@report')->name('report');
                 Route::post('/store','OrderController@store')->name('store');
                 Route::post('/select','OrderController@select')->name('select');
                 Route::get('/{id}','OrderController@show')->name('show');

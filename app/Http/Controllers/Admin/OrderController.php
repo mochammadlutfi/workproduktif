@@ -377,4 +377,23 @@ class OrderController extends Controller
         elseif ($x < 1000000000)
           return $this->terbilang($x / 1000000) . " juta" . $this->terbilang($x % 1000000);
     }
+
+    public function report(Request $request)
+    {
+        $tgl = explode(" - ",$request->tgl);
+        $data = Order::with(['user'])
+        ->whereBetween('tgl', $tgl)
+        ->latest()->get();
+        $config = [
+            'format' => 'A4-L' // Landscape
+        ];
+
+        $pdf = PDF::loadView('pdf.order', [
+            'data' => $data,
+            'tgl' =>$tgl
+        ], [ ], $config);
+
+        return $pdf->stream('Laporan Pesanan.pdf');
+
+    }
 }

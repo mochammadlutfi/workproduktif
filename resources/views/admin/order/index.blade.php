@@ -7,6 +7,10 @@
                     <i class="fa fa-plus me-1"></i>
                     Tambah Pesanan
                 </a>
+                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#reportModal">
+                    <i class="fa fa-print me-1"></i>
+                    Download Report
+                </button>
             </div>
         </div>
         <div class="block block-rounded">
@@ -30,6 +34,35 @@
         </div>
     </div>
     
+    <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+        <div class="modal-dialog rounded">
+            <div class="modal-content rounded">
+                <form action="{{ route('admin.order.report') }}" method="GET">
+                    <div class="block rounded shadow-none mb-0">
+                        <div class="block-header bg-body rounded-top">
+                            <h3 class="block-title " id="modalFormTitle">Download Report</h3>
+                            <div class="block-options">
+                                <button type="button" class=" btn-block-option" data-bs-dismiss="modal" aria-label="Close">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="block-content">
+                            <x-input-field type="text" name="tgl" id="tgl" label="Periode Tanggal"/> 
+                        </div>
+                        <div class="block-content block-content-full block-content-sm text-end border-top">
+                            <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">
+                              Batal
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                Download
+                            </button>
+                          </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     @push('scripts')
         <script>
             $(function () {
@@ -54,6 +87,14 @@
                     ]
                 });
             });
+        $("#field-tgl").flatpickr({
+            altInput: true,
+            altFormat: "j F Y",
+            dateFormat: "Y-m-d",
+            locale : "id",
+            defaultDate: [new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), new Date()],
+            mode: "range"
+        });
         function hapus(id){
             Swal.fire({
                 icon : 'warning',

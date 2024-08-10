@@ -149,6 +149,7 @@ class OrderController extends Controller
                 $data->qty = $request->qty;
                 $data->harga_unit = $request->harga_unit;
                 $data->harga_operator = $request->harga_operator;
+                $data->lokasi = $request->lokasi;
                 $data->total = $request->total;
                 $data->user_id = auth()->guard('web')->user()->id;
                 $data->status = 'belum bayar';
@@ -160,7 +161,7 @@ class OrderController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('order.payment', $data->id);
+            return redirect()->route('order.show', $data->id);
         // }
     }
 
@@ -394,4 +395,5 @@ class OrderController extends Controller
         elseif ($x < 1000000000)
           return $this->terbilang($x / 1000000) . " juta" . $this->terbilang($x % 1000000);
     }
+
 }
