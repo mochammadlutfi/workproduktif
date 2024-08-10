@@ -29,6 +29,7 @@
                         <x-field-read label="Sisa Tagihan" value="Rp {{ number_format($data->total - $data->dibayar,0,',','.') }}"/>
                     </div>
                 </div>
+                <x-field-read label="Lokasi Proyek" value="{{ $data->lokasi }}"/>
             </div>
         </div>
         <div class="block block-rounded">
