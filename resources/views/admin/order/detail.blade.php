@@ -4,12 +4,23 @@
             <div class="block-header border-bottom border-2">
                 <h3 class="block-title">Detail Pesanan</h3>
                 <div class="block-options">
+                    @if($data->status == 'Pending')
+                    <button type="button" class="btn btn-primary" onclick="updateStatusOrder('Diterima')">
+                        <i class="fa fa-check"></i>
+                        Terima
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="updateStatusOrder('Ditolak')">
+                        <i class="fa fa-times"></i>
+                        Tolak
+                    </button>
+                    @elseif($data->status == 'Diterima')
                     <a class="btn btn-primary" href="{{ route('admin.order.invoice', $data->id) }}">
                         Download Invoice
                     </a>
                     <a class="btn btn-primary" href="{{ route('admin.order.kontrak', $data->id) }}">
                         Download Kontrak
                     </a>
+                    @endif
                 </div>
             </div>
             <div class="block-content p-3">
@@ -99,6 +110,73 @@
             });
         });
 
+        function updateStatusOrder(status){
+                var text = '';
+                if(status == 'Diterima'){
+                    text = 'Terima pesanan?';
+                }else if(status == 'Ditolak'){
+                    text = 'Tolak pesanan?';
+                }else if(status == 'Berlangsung'){
+                    text = 'Tolak pesanan?';
+                }else if(status == 'Selesai'){
+                    text = 'Selesaikan pesanan?';
+                }
+
+                Swal.fire({
+                    icon : 'warning',
+                    text: text,
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya',
+                    cancelButtonText: `Batal`,
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: "{{ route('admin.order.status', $data->id)}}",
+                            type: "POST",
+                            headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+                            data : {
+                                status : status
+                            },
+                            success: function(data) {
+                                if(data.fail == false){
+                                    Swal.fire({
+                                        toast : true,
+                                        title: "Berhasil",
+                                        text: "Data Berhasil Dihapus!",
+                                        timer: 1500,
+                                        showConfirmButton: false,
+                                        icon: 'success',
+                                        position : 'top-end'
+                                    }).then((result) => {
+                                        location.reload();
+                                    });
+                                }else{
+                                    Swal.fire({
+                                        toast : true,
+                                        title: "Gagal",
+                                        text: "Data Gagal Dihapus!",
+                                        timer: 1500,
+                                        showConfirmButton: false,
+                                        icon: 'error',
+                                        position : 'top-end'
+                                    });
+                                }
+                            },
+                            error: function(jqXHR, textStatus, errorThrown) {
+                                    Swal.fire({
+                                        toast : true,
+                                        title: "Gagal",
+                                        text: "Terjadi Kesalahan Di Server!",
+                                        timer: 1500,
+                                        showConfirmButton: false,
+                                        icon: 'error',
+                                        position : 'top-end'
+                                    });
+                            }
+                        });
+                    }
+                });
+            }
         $("#field-tgl").flatpickr({
             altInput: true,
             altFormat: "j F Y",

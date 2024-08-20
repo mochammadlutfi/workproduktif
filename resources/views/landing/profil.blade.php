@@ -17,7 +17,7 @@
 
                         </div>
                         <div class="col-md-6">
-                            <x-input-field type="text" name="telp" id="telp" label="No Telpon" value="{{ $data->telp }}"/>
+                            <x-input-field type="text" name="telp" id="telp" label="No Telpon" value="{{ $data->hp }}"/>
                             <div class="mb-4">
                                 <label for="field-alamat">Alamat Lengkap</label>
                                 <textarea name="alamat" id="field-alamat" rows="4" class="form-control  {{ $errors->has('alamat') ? 'is-invalid' : '' }}">{{ old('alamat', isset($data) ? $data->alamat : '') }}</textarea>

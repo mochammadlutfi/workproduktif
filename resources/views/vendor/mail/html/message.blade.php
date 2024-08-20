@@ -2,7 +2,7 @@
 {{-- Header --}}
 <x-slot:header>
 <x-mail::header :url="config('app.url')">
-{{ config('app.name') }}
+<img src="https://workproduktif.online/images/logo.png" width="200px"/>
 </x-mail::header>
 </x-slot:header>
 

@@ -55,7 +55,8 @@
                                     <div class="invalid-feedback" id="error-nama">Invalid feedback</div>
                                 </div>
                                 <div class="mb-3">
-                                    <label>Foto</label>
+                                    <label for="field-file">Nama</label>
+                                    <div>Ukuran Foto 1000 x 1000 px</div>
                                     <img id="preview" src="#" alt="Foto" class="w-50 mb-2" style="display:none;"/>
                                     <input type="file" class="form-control" name="foto" @error('image') is-invalid @enderror id="selectImage">
                                 </div>

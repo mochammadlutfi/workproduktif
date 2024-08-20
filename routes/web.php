@@ -44,7 +44,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/pesanan/simpan','OrderController@store')->name('store');
         Route::get('/pesanan/{id}','OrderController@show')->name('show');
         Route::get('/pesanan/{id}/pembayaran','OrderController@payment')->name('payment');
+        Route::get('/pesanan/{id}/pembayaran/{payment_id}}','OrderController@paymentShow')->name('payment.show');
         Route::post('/pesanan/{id}/update','OrderController@update')->name('update');
+        Route::post('/pesanan/{id}/upload','OrderController@upload')->name('upload');
         Route::get('/pesanan/{id}/kontrak','OrderController@kontrak')->name('kontrak');
         Route::get('/pesanan/{id}/invoice','OrderController@pdf')->name('invoice');
     });
@@ -96,6 +98,7 @@ Route::prefix('/admin')->name('admin.')->namespace('Admin')->group(function(){
                 Route::get('/{id}/kontrak','OrderController@kontrak')->name('kontrak');
                 Route::get('/{id}/json','OrderController@json')->name('json');
                 Route::get('/{id}/edit','OrderController@edit')->name('edit');
+                Route::post('{id}/status','OrderController@status')->name('status');
                 Route::post('{id}/update','OrderController@update')->name('update');
                 Route::delete('/{id}/delete','OrderController@destroy')->name('delete');
                 Route::get('/{id}/riwayat','OrderController@riwayat')->name('riwayat');

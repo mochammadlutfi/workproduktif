@@ -25,19 +25,19 @@
                             <td class="fw-bold">{{ $data->min_sewa }} Jam</td>
                         </tr>
                         <tr>
-                            <td>Harga Sewa / Jam</td>
+                            <td>Harga Sewa Unit / Jam</td>
                             <td class="fw-bold"> Rp {{  number_format($data->harga_jam,0,',','.') }}</td>
                         </tr>
                         <tr>
-                            <td>Harga Sewa / Hari</td>
+                            <td>Harga Sewa Unit/ Hari</td>
                             <td class="fw-bold"> Rp {{  number_format($data->harga_harian,0,',','.') }}</td>
                         </tr>
                         <tr>
-                            <td>Harga Operator / Jam</td>
+                            <td>Harga Operator(Driver) / Jam</td>
                             <td class="fw-bold">Rp {{  number_format($data->operator_jam,0,',','.') }}</td>
                         </tr>
                         <tr>
-                            <td>Harga Operator / Hari</td>
+                            <td>Harga Operator (Driver)/ Hari</td>
                             <td class="fw-bold">Rp {{  number_format($data->operator_hari,0,',','.') }}</td>
                         </tr>
                     </table>
@@ -126,6 +126,14 @@
                             </div>
                             <div class="row mb-4">
                                 <div class="col-md-5 d-flex my-auto">
+                                    <label for="showHari">Lama Sewa Hari</label>
+                                </div>
+                                <div class="col-md-7">
+                                    <span id="showHari"></span>
+                                </div>
+                            </div>
+                            <div class="row mb-4">
+                                <div class="col-md-5 d-flex my-auto">
                                     <label for="field-qty">Jumlah Unit</label>
                                 </div>
                                 <div class="col-md-7">
@@ -200,6 +208,11 @@
                 const hargaOperator = hitungHargaOperator(lama);
                 const total = (hargaUnit + hargaOperator) * qty;
 
+                const hari = lama / 12;
+                const jam = lama % 12;
+                const showHari = ~~hari+ ' Hari ';
+                const showJam =  (jam > 0) ? jam + ' Jam' : '';
+
                 $("#field-harga_operator").val(hargaOperator);
                 $("#field-harga_unit").val(hargaUnit);
                 $("#field-total").val(total);
@@ -207,6 +220,8 @@
                 $("#showHargaUnit").html(formatRupiah(hargaUnit, 'Rp. '));
                 $("#showHargaOperator").html(formatRupiah(hargaOperator, 'Rp. '));
                 $("#showSubTotal").html(formatRupiah(total, 'Rp. '));
+
+                $("#showHari").html(showHari + showJam);
             }
 
             function hitungHargaOperator(lama){

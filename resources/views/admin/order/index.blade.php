@@ -22,12 +22,61 @@
                             <th>No Pesanan</th>
                             <th>Konsumen</th>
                             <th>Tanggal</th>
+                            <th>Unit</th>
+                            <th>Lama</th>
                             <th>Status</th>
                             <th>Total</th>
                             <th width="60px">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
+                        @foreach ($data as $d)
+                        <tr>
+                            <td>{{  $loop->index+1 }}</td>
+                            <td>{{  $d->nomor }}</td>
+                            <td>{{  $d->user->nama }}</td>
+                            <td>{{  \Carbon\Carbon::parse($d->tgl)->translatedFormat('d F Y') }}</td>
+                            <td>{{  $d->qty }}</td>
+                            <td>
+                                {{  $d->lama }} Jam <br/>
+                                ({{ $d->durasi }})
+                            </td>
+                            <td>
+                                @if($d->status == "Pending")
+                                <span class="badge bg-warning">Menunggu</span>
+                                @elseif($d->status == 'Diterima')
+                                <span class="badge bg-primary">Diproses</span>
+                                @elseif($d->status == 'Berlangsung')
+                                <span class="badge bg-primary">Berlangsung</span>
+                                @elseif($d->status == 'Selesai')
+                                <span class="badge bg-success">Selesai</span>
+                                @elseif($d->status == 'Ditolak')
+                                <span class="badge bg-danger">Ditolak</span>
+                                @endif
+                            </td>
+                            <td>Rp {{  number_format($d->total,0,'.', ',') }}</td>
+                            <td>
+                                <div class="dropdown">
+                                    <button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle"
+                                        id="dropdown-default-outline-primary" data-bs-toggle="dropdown"
+                                        aria-haspopup="true" aria-expanded="false">
+                                        Aksi
+                                    </button>
+                                    <div class="dropdown-menu fs-sm" aria-labelledby="dropdown-default-outline-primary">
+                                        <a class="dropdown-item" href="{{ route('admin.order.show', $d->id)}}">
+                                            <i class="si si-note me-1"></i>Detail
+                                        </a>
+                                        <a class="dropdown-item" href="{{ route('admin.order.edit', $d->id)}}">
+                                            <i class="si si-note me-1"></i>Ubah
+                                        </a>
+                                        <a class="dropdown-item" href="javascript:void(0)" onclick="hapus({{ $d->id}})">
+                                            <i class="si si-trash me-1"></i>Hapus
+                                        </a>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforeach
                     </tbody>
                 </table>
             </div>
@@ -67,24 +116,7 @@
         <script>
             $(function () {
                 $('.datatable').DataTable({
-                    processing: true,
-                    serverSide: true,
                     dom : "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>><'row'<'col-sm-12'tr>><'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-                    ajax: "{{ route('admin.order.index') }}",
-                    columns: [
-                        {data: 'DT_RowIndex', name: 'DT_RowIndex'},
-                        {data: 'nomor', name: 'nomor'},
-                        {data: 'user.nama', name: 'user.nama'},
-                        {data: 'tgl', name: 'tgl'},
-                        {data: 'status', name: 'status'},
-                        {data: 'total', name: 'total'},
-                        {
-                            data: 'action', 
-                            name: 'action', 
-                            orderable: true, 
-                            searchable: true
-                        },
-                    ]
                 });
             });
         $("#field-tgl").flatpickr({

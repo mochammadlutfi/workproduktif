@@ -12,6 +12,10 @@ use App\Models\Order;
 use App\Models\Produk;
 use App\Models\User;
 use PDF;
+use App\Mail\OrderStatusMail;
+use Illuminate\Support\Facades\Mail;
+
+
 class OrderController extends Controller
 {
     /**
@@ -21,50 +25,12 @@ class OrderController extends Controller
      */
     public function index(Request $request)
     {
-        if ($request->ajax()) {
 
-            $data = Order::with(['user'])->orderBy('id', 'DESC')->get();
-
-            return DataTables::of($data)
-                ->addIndexColumn()
-                ->addColumn('action', function($row){
-                    $btn = '<div class="dropdown">
-                        <button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle" id="dropdown-default-outline-primary" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Aksi
-                        </button>
-                        <div class="dropdown-menu fs-sm" aria-labelledby="dropdown-default-outline-primary" style="">';
-                        $btn .= '<a class="dropdown-item" href="'. route('admin.order.show', $row->id).'"><i class="si si-eye me-1"></i>Detail</a>';
-                        $btn .= '<a class="dropdown-item" href="'. route('admin.order.edit', $row->id).'"><i class="si si-note me-1"></i>Ubah</a>';
-                        $btn .= '<a class="dropdown-item" href="javascript:void(0)" onclick="hapus('. $row->id.')"><i class="si si-trash me-1"></i>Hapus</a>';
-                    $btn .= '</div></div>';
-                    return $btn; 
-                })
-                ->editColumn('tgl', function ($row) {
-                    $tgl =  Carbon::parse($row->tgl)->translatedFormat('d F Y');
-
-                    return $tgl;
-                })
-                ->editColumn('total', function ($row) {
-                    return 'Rp '.number_format($row->total,0,',','.');
-                })
-                ->editColumn('status', function ($row) {
-                    if($row->status == 'Belum Bayar'){
-                        return '<span class="badge bg-danger">Belum Bayar</span>';
-                    }else if($row->status == 'Sebagian'){
-                        return '<span class="badge bg-warning">Sebagian</span>';
-                    }else if($row->status == 'pending'){
-                        return '<span class="badge bg-primary">Menunggu Konfirmasi</span>';
-                    }else if($row->status == 'Lunas'){
-                        return '<span class="badge bg-success">Lunas</span>';
-                    }else if($row->status == 'Batal'){
-                        return '<span class="badge bg-secondary">Batal</span>';
-                    }
-                })
-                ->rawColumns(['action', 'tgl', 'status']) 
-                ->make(true);
-        }
-
-        return view('admin.order.index');
+        $data = Order::with(['user'])->orderBy('id', 'DESC')->get();
+        
+        return view('admin.order.index',[
+            'data' => $data
+        ]);
     }
 
     /**
@@ -76,6 +42,7 @@ class OrderController extends Controller
     {
         $user = User::select('id as value', 'nama as label')->latest()->get();
         $produk = Produk::select('id as value', 'nama as label')->latest()->get();
+
         return view('admin.order.form',[
             'user' => $user,
             'produk' => $produk
@@ -159,11 +126,14 @@ class OrderController extends Controller
      */
     public function edit($id)
     {
-        $data = Anggota::where('id', $id)->first();
-        $ekskul = Ekskul::orderBy('nama', 'ASC')->get();
-        return view('anggota.edit',[
+        $data = Order::where('id', $id)->first();
+        $user = User::select('id as value', 'nama as label')->latest()->get();
+        $produk = Produk::select('id as value', 'nama as label')->latest()->get();
+
+        return view('admin.order.edit',[
             'data' => $data,
-            'ekskul' => $ekskul
+            'user' => $user,
+            'produk' => $produk
         ]);
     }
 
@@ -317,6 +287,52 @@ class OrderController extends Controller
           return response()->json($data);
     }
 
+    public function status($id, Request $request)
+    {
+        DB::beginTransaction();
+        try{
+            $data = Order::where('id', $id)->first();
+            $data->status = $request->status;
+            $data->save();
+
+            if($request->status == 'Diterima'){
+                $today = Carbon::now();
+                $date = Collect([
+                    'hari' => ucwords($today->translatedFormat('l')),
+                    'tgl' => ucwords($this->terbilang((int)$today->translatedFormat('d'))),
+                    'bulan' => $today->translatedFormat('F'),
+                    'tahun' => ucwords($this->terbilang((int)$today->translatedFormat('Y'))),
+                ]);
+        
+                $pdf = PDF::loadView('pdf.kontrak', [
+                    'data' => $data,
+                    'date' => $date,
+                ], [ ], [
+                    'format' => 'A4-P',
+                    'margin_top' => '200px',
+                ]);
+
+                Mail::to($data->user->email)->send(new OrderStatusMail($data, $pdf->Output('kontrak.pdf')));
+            }elseif($request->status == 'Berlangsung'){
+                Mail::to($data->user->email)->send(new OrderStatusMail($data));
+            }elseif($request->status == 'Selesai'){
+                Mail::to($data->user->email)->send(new OrderStatusMail($data));
+            }elseif($request->status == 'Ditolak'){
+                Mail::to($data->user->email)->send(new OrderStatusMail($data));
+            }
+        }catch(\QueryException $e){
+            DB::rollback();
+            return response()->json([
+                'fail' => true,
+                'pesan' => $e,
+            ]);
+        }
+
+        DB::commit();
+        return response()->json([
+            'fail' => false,
+        ]);
+    }
     
     public function pdf($id)
     {
@@ -354,7 +370,7 @@ class OrderController extends Controller
             'margin_top' => '200px',
         ]);
 
-        return $pdf->stream('Invoice '. $data->nomor .'.pdf');
+        return $pdf->stream('Kontrak '. $data->nomor .'.pdf');
     }
 
     private function terbilang($x) {

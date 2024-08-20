@@ -20,6 +20,37 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @foreach ($data as $d)
+                        <tr>
+                            <td>{{  $loop->index+1 }}</td>
+                            <td>{{  $d->nomor }}</td>
+                            <td>{{  \Carbon\Carbon::parse($d->tgl)->translatedFormat('d F Y') }}</td>
+                            <td>{{  $d->qty }}</td>
+                            <td>
+                                {{  $d->lama }} Jam <br/>
+                                ({{ $d->durasi }})
+                            </td>
+                            <td>
+                                @if($d->status == "Pending")
+                                <span class="badge bg-warning">Menunggu</span>
+                                @elseif($d->status == 'Diterima')
+                                <span class="badge bg-primary">Diproses</span>
+                                @elseif($d->status == 'Berlangsung')
+                                <span class="badge bg-primary">Berlangsung</span>
+                                @elseif($d->status == 'Selesai')
+                                <span class="badge bg-success">Selesai</span>
+                                @elseif($d->status == 'Ditolak')
+                                <span class="badge bg-danger">Ditolak</span>
+                                @endif
+                            </td>
+                            <td>Rp {{  number_format($d->total,0,'.', ',') }}</td>
+                            <td>
+                                <a href="{{ route('order.show', $d->id)}}" class="btn btn-primary">
+                                Detail
+                                </a>
+                            </td>
+                        </tr>
+                        @endforeach
                     </tbody>
                 </table>
             </div>
@@ -30,25 +61,7 @@
 
             $(function () {
                 $('.datatable').DataTable({
-                    processing: true,
-                    serverSide: true,
                     dom : "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>><'row'<'col-sm-12'tr>><'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
-                    ajax: "{{ route('order.index') }}",
-                    columns: [
-                        {data: 'DT_RowIndex', name: 'DT_RowIndex'},
-                        {data: 'nomor', name: 'nomor'},
-                        {data: 'tgl', name: 'tgl'},
-                        {data: 'qty', name: 'qty'},
-                        {data: 'lama', name: 'lama'},
-                        {data: 'status', name: 'status'},
-                        {data: 'total', name: 'total'},
-                        {
-                            data: 'action', 
-                            name: 'action', 
-                            orderable: true, 
-                            searchable: true
-                        },
-                    ]
                 });
             });
         </script>

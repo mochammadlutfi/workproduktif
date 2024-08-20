@@ -18,7 +18,7 @@ class Order extends Model
     ];
 
     protected $appends = [
-        'dibayar', 'status'
+        'dibayar', 'status_pembayaran'
     ];
 
     public function user(){
@@ -37,7 +37,15 @@ class Order extends Model
         return $this->pembayaran->sum('jumlah');
     }
 
-    public function getStatusAttribute(){
+    public function getDurasiAttribute(){
+
+        $hari = round($this->lama /12);
+        $sisa = ($this->lama % 12) ? $this->lama % 12 . ' Jam' : '';
+
+        return $hari.' Hari ' . $sisa;
+    }
+
+    public function getStatusPembayaranAttribute(){
 
         if($this->pembayaran->count()){
             if($this->pembayaran->sum('jumlah') == $this->total){

@@ -3,10 +3,10 @@
     @endpush
 
     <div class="content">
-        <form method="POST" action="{{ route('admin.order.store') }}">
+        <form method="POST" action="{{ route('admin.order.update', $data->id) }}">
             @csrf
             <div class="content-heading d-flex justify-content-between align-items-center">
-                <span>Tambah Pesanan Baru</span>
+                <span>Ubah Pesanan</span>
                 <div class="space-x-1">
                     <button type="submit" class="btn btn-primary">
                         <i class="fa fa-check me-1"></i>
@@ -18,12 +18,12 @@
                 <div class="block-content">
                     <div class="row">
                         <div class="col-md-6">
-                            <x-select-field name="user_id" id="user_id" label="Konsumen" :options="$user"/>
-                            <x-select-field name="produk_id" id="produk_id" label="Produk" :options="$produk"/>
+                            <x-select-field name="user_id" id="user_id" label="Konsumen" value="{{ $data->user_id }}" :options="$user"/>
+                            <x-select-field name="produk_id" id="produk_id" label="Produk" value="{{ $data->produk_id }}" :options="$produk"/>
                             <div class="mb-4">
                                 <label for="field-lama">Lama Sewa</label>
                                 <div class="input-group">
-                                    <input type="number" class="form-control" id="field-lama" name="lama">
+                                    <input type="number" class="form-control" id="field-lama" name="lama" value="{{ $data->lama }}">
                                     <span class="input-group-text">
                                         Jam
                                     </span>
@@ -31,7 +31,7 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <x-input-field type="text" name="tgl" id="tgl" label="Tanggal"/>
+                            <x-input-field type="text" name="tgl" id="tgl" label="Tanggal" value="{{ $data->tgl }}"/>
                             <div class="mb-4">
                                 <label>Harga Sewa Unit / Jam</label>
                                 <div class="fw-medium py-2" id="hargaJamShow">Rp 0</div>

@@ -58,12 +58,12 @@
                                     <x-input-error :messages="$errors->get('nama')" class="mt-2" />
                                 </div>
                             </div>
-                            <x-input-field type="text" id="harga_jam" name="harga_jam" label="Harga / Jam" :required="true"/>
-                            <x-input-field type="text" id="harga_harian" name="harga_harian" label="Harga / Hari" :required="true"/>
+                            <x-input-field type="text" id="harga_jam" name="harga_jam" label="Harga Sewa unit / Jam" :required="true"/>
+                            <x-input-field type="text" id="harga_harian" name="harga_harian" label="HargaS ewa unit / Hari" :required="true"/>
                         </div>
                         <div class="col-md-6">
-                        <x-input-field type="text" id="operator_jam" name="operator_jam" label="Harga Operator / Jam" :required="true"/>
-                        <x-input-field type="text" id="operator_hari" name="operator_hari" label="Harga Operator / Hari" :required="true"/>
+                        <x-input-field type="text" id="operator_jam" name="operator_jam" label="Harga Operator (Driver) / Jam" :required="true"/>
+                        <x-input-field type="text" id="operator_hari" name="operator_hari" label="Harga Operator (Driver) / Hari" :required="true"/>
                         </div>
                     </div>
                     <table class="table table-bordered" id="spek">

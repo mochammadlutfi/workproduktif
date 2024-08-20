@@ -1,22 +1,28 @@
 <x-landing-layout>
-    <div class="bg-primary">
-        <div class="content text-center">
-            <div class="pt-5 pb-5">
-                <h1 class="h2 fw-bold text-white mb-2">Ubah Password</h1>
-            </div>
-        </div>
-    </div>
-    <div class="content">
+    <div class="content content-full">
+        <nav class="breadcrumb push rounded-pill py-2 mb-4">
+            <a class="breadcrumb-item" href="{{ route('home') }}">Beranda</a>
+            <span class="breadcrumb-item active">Ubah Profil</span>
+        </nav>
         <div class="block block-rounded">
             <div class="block-content p-3">
                 <form method="POST" action="{{ route('profil.password') }}">
                     @csrf
                     <div class="row mb-4">
-                        <label class="col-sm-3 col-form-label" for="field-password">Password</label>
+                        <label class="col-sm-3 col-form-label" for="field-password_old">Password Lama</label>
+                        <div class="col-sm-6">
+                            <input type="password"
+                                class="form-control {{ $errors->has('password_old') ? 'is-invalid' : '' }}"
+                                id="field-password_old" name="password_old">
+                            <x-input-error :messages="$errors->get('password_old')" class="mt-2" />
+                        </div>
+                    </div>
+                    <div class="row mb-4">
+                        <label class="col-sm-3 col-form-label" for="field-password">Password Baru</label>
                         <div class="col-sm-6">
                             <input type="password"
                                 class="form-control {{ $errors->has('password') ? 'is-invalid' : '' }}"
-                                id="field-password" name="password" placeholder="Masukan Password">
+                                id="field-password" name="password">
                             <x-input-error :messages="$errors->get('password')" class="mt-2" />
                         </div>
                     </div>
@@ -26,8 +32,7 @@
                         <div class="col-sm-6">
                             <input type="password"
                                 class="form-control {{ $errors->has('password_confirmation ') ? 'is-invalid' : '' }}"
-                                id="field-password_confirmation " name="password_confirmation"
-                                placeholder="Masukan Konfirmasi Password">
+                                id="field-password_confirmation " name="password_confirmation">
                             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
                         </div>
                     </div>

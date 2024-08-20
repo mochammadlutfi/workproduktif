@@ -22,96 +22,33 @@ class OrderController extends Controller
      */
     public function index(Request $request)
     {
-        if ($request->ajax()) {
-            $data = Order::where('user_id', auth()->guard('web')->user()->id)
-            ->orderBy('id', 'DESC')
-            ->get();
+        
+        $data = Order::where('user_id', auth()->guard('web')->user()->id)
+        ->orderBy('id', 'DESC')
+        ->get();
 
-            return DataTables::of($data)
-                ->addIndexColumn()
-                ->addColumn('action', function($row){
-                    $btn = '<a href="'. route('order.show', $row->id) .'" class="btn btn-primary btn-sm">Detail</a>';
-                    return $btn; 
-                })
-                ->editColumn('created_at', function ($row) {
-                    return Carbon::parse($row->created_at)->translatedFormat('d F Y');
-                })
-                ->editColumn('tgl', function ($row) {
-                    $tgl =  Carbon::parse($row->tgl)->translatedFormat('d F Y');
-
-                    return $tgl . '<br>' . $row->mulai . " - " . $row->selesai .' WIB';
-                })
-                ->editColumn('status', function ($row) {
-                    if($row->status == 'belum bayar'){
-                        return '<span class="badge bg-danger">Belum Bayar</span>';
-                    }else if($row->status == 'sebagian'){
-                        return '<span class="badge bg-warning">Sebagian</span>';
-                    }else if($row->status == 'pending'){
-                        return '<span class="badge bg-primary">Menunggu Konfirmasi</span>';
-                    }else if($row->status == 'lunas'){
-                        return '<span class="badge bg-success">Lunas</span>';
-                    }else if($row->status == 'batal'){
-                        return '<span class="badge bg-secondary">Batal</span>';
-                    }
-                })
-                ->rawColumns(['action', 'status', 'tgl']) 
-                ->make(true);
-        }
-
-        return view('landing.order.index');
+        return view('landing.order.index',[
+            'data' => $data,
+        ]);
     }
 
 
     public function payment($id, Request $request)
     {
-        if ($request->ajax()) {
-            $order_id = $request->order_id;
-            $data = Payment::with(['order' => function($q){
-                return $q->with('user');
-            }])
-            ->when($order_id, function($q, $order_id){
-                return $q->where('order_id', $order_id);
-            })
-            ->orderBy('id', 'DESC')->get();
-
-            return DataTables::of($data)
-                ->addIndexColumn()
-                ->addColumn('action', function($row){
-                    $btn = '<a class="btn btn-primary btn-sm" href="'. route('admin.payment.show', $row->id) .'">Detail</a>';
-                    return $btn; 
-                })
-                ->editColumn('tgl', function ($row) {
-                    $tgl =  Carbon::parse($row->tgl)->translatedFormat('d F Y');
-                    return $tgl;
-                })
-                ->editColumn('created_at', function ($row) {
-                    $tgl = Carbon::parse($row->created_at);
-
-                    return $tgl->translatedFormat('d M Y');
-                })
-                ->editColumn('jumlah', function ($row) {
-                    return 'Rp '.number_format($row->jumlah,0,',','.');
-                })
-                ->editColumn('status', function ($row) {
-                    if($row->status == 'pending'){
-                        return '<span class="badge bg-danger">Menunggu Konfirmasi</span>';
-                    }else if($row->status == 'terima'){
-                        return '<span class="badge bg-success">Diterima</span>';
-                    }else if($row->status == 'tolak'){
-                        return '<span class="badge bg-danger">Ditolak</span>';
-                    }
-                })
-                ->rawColumns(['action', 'status', 'jumlah']) 
-                ->make(true);
-        }
         $data = Order::where('id', $id)
         ->first();
-        // dd($data->toArray());
-
         return view('landing.order.pembayaran',[
             'data' => $data
         ]);
-        // return view('landing.order.pembayaran');
+    }
+
+    public function paymentShow($id, $payment_id)
+    {
+        $data = Payment::where('id', $payment_id)->first();
+
+        return view('landing.order.pembayaran_show', [
+            'data' => $data
+        ]);
     }
     /**
      * Store a newly created resource in storage.
@@ -152,7 +89,7 @@ class OrderController extends Controller
                 $data->lokasi = $request->lokasi;
                 $data->total = $request->total;
                 $data->user_id = auth()->guard('web')->user()->id;
-                $data->status = 'belum bayar';
+                $data->status = 'Pending';
                 $data->save();
 
             }catch(\QueryException $e){
@@ -240,6 +177,41 @@ class OrderController extends Controller
         }
     }
 
+    public function upload(Request $request, $id)
+    {
+        $rules = [
+            'file' => 'required',
+        ];
+
+        $pesan = [
+            'file.required' => 'Tanggal Bayar Wajib Diisi!',
+        ];
+
+
+        $validator = Validator::make($request->all(), $rules, $pesan);
+        if ($validator->fails()){
+            return back()->withInput()->withErrors($validator->errors());
+        }else{
+            DB::beginTransaction();
+            try{
+
+                $data = Order::where('id', $id)->first();
+                if($request->file){
+                    $fileName = time() . '.' . $request->file->extension();
+                    Storage::disk('public')->putFileAs('uploads/kontrak', $request->file, $fileName);
+                    $data->kontrak = '/uploads/kontrak/'.$fileName;
+                }
+                $data->save();
+
+            }catch(\QueryException $e){
+                DB::rollback();
+                back()->withInput()->withErrors($validator->errors());
+            }
+
+            DB::commit();
+            return redirect()->route('order.show', $id);
+        }
+    }
     /**
      * Remove the specified resource from storage.
      *
